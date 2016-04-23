@@ -47,6 +47,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
      <%
      /*服务器端行为，请求对象会被保存，地址栏URL不会改变*/
      request.getRequestDispatcher("testRespondTransmit.jsp").forward(request, response);    
+     /*与forward动作<jsp:forward page = "testRespondTransmit.jsp"><jsp:param value="" name=""></jsp:forward>一样，
+     都是服务器内部请求转发*/
       %>
       
      
