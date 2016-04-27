@@ -9,5 +9,9 @@
 	   	   <result name="add">/{1}.jsp</result>
 	   	   <result name="update">/{1}.jsp</result>
 	   </action>
+	   
+	   <action name="LoginAction" method="login" class="com.imooc.action.LoginAction">
+	   		<result>/success.jsp</result>
+	   </action>
 	 </package>
 </struts>
