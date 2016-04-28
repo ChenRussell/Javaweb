@@ -17,6 +17,11 @@
 		<property name="connection.driver_class">
 			com.mysql.jdbc.Driver
 		</property>
+		<!-- 
+		 -->
+		 <property name="show_sql">true</property>
+		 <property name="format_sql">true</property>
+		 
 		<property name="myeclipse.connection.profile">test</property>
 		<mapping resource="com/demo1/bean/User.hbm.xml" />
 
