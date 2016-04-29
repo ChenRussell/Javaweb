@@ -1,5 +1,7 @@
 package com.Demo2.test;
 
+import java.util.Set;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -11,6 +13,8 @@ import org.junit.*;
 import com.Demo2.bean.Grade;
 /*
  * 单向一对多关联关系（班级--->学生）
+ * 建立关联关系后，可以方便的从一个对象导航到另一个对象
+ * 注意关联方向
  * */
 import com.Demo2.bean2.Student;
 
@@ -55,6 +59,34 @@ public class testIt {
 		session.save(stu1);
 		session.save(stu2);
 		
+	}
+	
+	@Test
+	public void findStudentsByGrade(){
+		/*通过班号去找该班所有学生，一对多映射关系*/
+		Grade g = (Grade)session.get(Grade.class, 10);
+		System.out.println("班级："+g.getGname()+" "+"班级详细信息："+g.getGdesc());
+		Set<Student> students = g.getStudents();
+		for(Student stu:students){
+			System.out.println("姓名："+stu.getSname()+" 性别："+stu.getSex());
+		}
+	}
+	
+	@Test
+	public void updateStudentsInfor(){
+		
+		Grade g= new Grade("Java二班", "Java网站开发二班");
+		Student stu = (Student)session.get(Student.class, 17);
+		g.getStudents().add(stu);    /*原来在一班的学生现在添加到二班中去，保存Grade g后Student中相应信息就会更改*/
+		session.save(g);
+		
+	}
+	
+	@Test
+	public void deleteStudents(){
+        /*删除时不需要关联更方便*/
+		Student stu = (Student)session.get(Student.class, 18);
+		session.delete(stu);
 	}
 
 
