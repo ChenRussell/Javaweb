@@ -13,9 +13,20 @@ public class Student implements java.io.Serializable {
 	private Integer sid;
 	private String sname;
 	private String sex;
+	
+	//在多方定义一个一方的引用
+	private Grade grade;
 
 	// Constructors
 
+
+	public Grade getGrade() {
+		return grade;
+	}
+
+	public void setGrade(Grade grade) {
+		this.grade = grade;
+	}
 
 	/** default constructor */
 	public Student() {

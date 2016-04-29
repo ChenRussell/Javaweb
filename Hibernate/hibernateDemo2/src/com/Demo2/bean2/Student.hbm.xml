@@ -16,5 +16,7 @@
         <property name="sex" type="java.lang.String">
             <column name="sex" length="50" not-null="true" />
         </property>
+        <!-- 配置多对一关联关系 -->
+        <many-to-one name="grade" class="com.Demo2.bean.Grade" column="gid"></many-to-one>
     </class>
 </hibernate-mapping>
