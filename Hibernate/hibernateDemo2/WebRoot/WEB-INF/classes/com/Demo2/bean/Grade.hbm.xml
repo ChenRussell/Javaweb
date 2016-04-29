@@ -18,7 +18,7 @@
         </property>
         
         <!-- 配置单向的一对多关联关系 -->
-        <set name="students" table="student">
+        <set name="students" table="student" cascade="save-update">
 	        <!-- 指定关联外键列 -->
 	        <key column="gid"></key>
 	        <one-to-many class="com.Demo2.bean2.Student"  />
