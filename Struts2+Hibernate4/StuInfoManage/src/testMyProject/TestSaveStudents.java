@@ -51,7 +51,7 @@ public class TestSaveStudents {
 		 * 在这里数据库中的主键应该是A_I，不然会报错！、
 		 * 数据库中的sid是int，在实体类中可以是String，Hibernate框架会自动转换。
 		 * */
-		Students s1 = new Students("黄复贵哈哈~","男",new Date(),"广东深圳");
+		Students s1 = new Students("黄复贵哈哈~","男",new Date(),"广东深圳啊啊啊");
 		session.save(s1);
 	}
 }

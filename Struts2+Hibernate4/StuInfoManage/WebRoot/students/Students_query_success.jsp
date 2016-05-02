@@ -112,7 +112,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<td>操作</td>
 	</tr>
 	
-	<!-- 遍历开始 -->
+	<!-- 
+	遍历开始，要用到Struts2的标签库 
+	Struts2的值栈分为对象栈和上下文栈，而session是在上下文栈中，取上下文栈中的数据要用#开头
+	-->
 	<s:iterator value="#session.students_list" var="stu">
 	<tr class="list">
 		<td><s:property value="#stu.sid"/></td>
