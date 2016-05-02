@@ -81,7 +81,34 @@ public class StudentsDAO_Impl implements StudentsDAO {
 	@Override
 	public boolean deleteStudents(String sid) {
 		// TODO Auto-generated method stub
-		return false;
+
+		try{
+			//创建配置对象
+			Configuration config = new Configuration().configure();
+			//创建服务注册对象
+			ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(config.getProperties()).buildServiceRegistry();
+			//创建会话工厂对象
+			sessionFactory = config.buildSessionFactory(serviceRegistry);
+			//会话对象
+			session = sessionFactory.openSession();
+			//开启事务
+			transaction = session.beginTransaction();
+			
+			//删除学生
+			Students s = (Students) session.get(Students.class, sid);
+			session.delete(s);
+			
+			return true;
+		}
+		catch(Exception ex){
+			ex.printStackTrace();
+			return false;
+		}
+		finally{
+			transaction.commit(); //提交事务
+			session.close(); //关闭会话，若不释放可能导致数据库连接池溢出
+			sessionFactory.close(); //关闭会话工厂	
+		}
 	}
 
 }
