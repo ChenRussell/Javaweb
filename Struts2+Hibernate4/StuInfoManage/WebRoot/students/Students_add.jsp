@@ -103,7 +103,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   </tr>
   <tr>
     <td>出生日期：</td>
-    <td><input name="birthday" type="text" id="control_date" size="20"
+    <td><input name="birthday"  type="text" id="control_date" size="20"
       maxlength="10" onclick="new Calendar().show(this);" readonly="readonly" />
     </td>
   </tr>
