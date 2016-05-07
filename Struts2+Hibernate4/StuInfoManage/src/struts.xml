@@ -22,7 +22,8 @@
 			<!--type="chain"相当于服务器内部请求转发，后面跟一个动作  -->
 			
 			<result name="add_success">/students/Students_add_success.jsp</result>
-			
+			<result name="modify_success">/students/Students_modify.jsp</result>
+			<result name="save_success">/students/Students_modify_success.jsp</result>
 		</action>
 	</package>
 

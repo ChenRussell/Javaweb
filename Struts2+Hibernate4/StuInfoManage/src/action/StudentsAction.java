@@ -66,5 +66,39 @@ public class StudentsAction extends SuperAction {
 		return "add_success";
 		
 	}
+	
+	//修改学生资料，将学生原来信息展示在页面上
+	public String modify(){
+		
+		String sid = request.getParameter("sid");
+		StudentsDAO sdao = new StudentsDAO_Impl();
+		Students s = sdao.queryStudentBysid(sid);
+		
+		//保存在会话中
+		session.setAttribute("modify_students", s);
+		
+		return "modify_success";
+	}
+	
+	//保存修改后的学生动作
+	public String  save() throws ParseException{
+		Students s = new Students();
+		s.setSid(request.getParameter("sid"));
+		s.setSname(request.getParameter("sname"));
+		s.setGender(request.getParameter("gender"));
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String s_birthday = request.getParameter("birthday");
+		Date birthday = sdf.parse(s_birthday);
+		s.setBirthday(birthday);
+		
+		s.setAddress(request.getParameter("address"));
+		
+		/*调用已经写好的接口*/
+		StudentsDAO sdao = new StudentsDAO_Impl();
+		sdao.updateStudents(s);
+		
+		return "save_success";
+	}
 
 }

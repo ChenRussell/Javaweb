@@ -105,6 +105,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   <tr>
     <td>性别：</td>
     <td>
+    
+    <!-- 
+    		记住写法啊！
+    		单双引号
+    -->
       <s:if test='%{#session.modify_students.gender=="男"}'>
          <input type="radio" name="gender" value="男" checked="checked"/>男
          <input type="radio" name="gender" value="女"/>女
