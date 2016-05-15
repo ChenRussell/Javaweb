@@ -18,6 +18,12 @@ public class InjectionServiceImpl implements InjectionService {
 		this.injectionDAO = injectionDAO;
 	}*/
 
+	public void start(){
+		System.out.println("Bean starts now!");
+	}
+	public void end(){
+		System.out.println("Bean ends now!");
+	}
 
 	@Override
 	public void save(String args) {
