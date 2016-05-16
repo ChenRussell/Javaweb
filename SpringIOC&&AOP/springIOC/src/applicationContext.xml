@@ -30,10 +30,13 @@
 	
 	<bean id="aspectBiz" class="schema.advice.biz.AspectBiz"></bean>
 
+	<!-- 先定义切面类（aspect），再定义pointcut(切点)，最后定义advice(通知，即切面类里的各方法) -->
 	<aop:config>
 		<aop:aspect id="moocAspectAop" ref="moocAspect">
 			<aop:pointcut expression="execution(* schema.advice.biz.*Biz.*(..))" id="moocPointcut"/>
 			<aop:before method="before" pointcut-ref="moocPointcut"/>
+			<aop:after-returning method="afterReturning" pointcut-ref="moocPointcut"/>
+			<aop:after method="after" pointcut-ref="moocPointcut"/>
 		</aop:aspect>
 	</aop:config>
 	
