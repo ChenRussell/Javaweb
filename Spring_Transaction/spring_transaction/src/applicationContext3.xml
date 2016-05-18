@@ -31,12 +31,13 @@
 	
 	<!-- 配置业务层类 -->
 	<bean id="accountService" class="cn.muke.spring.demo3.AccountServiceImpl">
-	<property name="accountDAO" ref="accountDAO"></property>
+		<!-- 把DAO类注入到Service层中！ -->
+		<property name="accountDAO" ref="accountDAO"></property>
 	</bean>
 	
 	<!-- 配置DAO类 -->
 	<bean id="accountDAO" class="cn.muke.spring.demo3.AccountDAOImpl">
-	<property name="dataSource" ref="dataSource"></property>
+		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 	
 	<!-- 配置事务管理器 -->
@@ -47,15 +48,21 @@
 	<!-- 配置事务的通知（事务的增强） -->
 	<tx:advice id="txAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
-		<tx:method name="transfer" propagation="REQUIRED"/>
+			<!-- 配置事务通知属性：transfer方法要执行事务通知 ！-->
+			<tx:method name="transfer" propagation="REQUIRED"/>
 		</tx:attributes>
 	</tx:advice>
 	
-	<!-- 配置AOP切面 -->
+	<!-- 配置AOP切面,基于AOP的思想 -->
 	<aop:config>
 		<!-- 配置切入点 -->
 		<aop:pointcut expression="execution(* cn.muke.spring.demo3.AccountService+.*(..))" id="pointcut1"/>
-		<!-- 配置切面 -->
+		<!-- 配置切面(此时即相当于配置事务增强),可以理解aop:advisor是专门进行事务通知的 -->
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut1"/>
 	</aop:config>
+	
+	<!--
+	这时accountService就是一个自动代理类(交给事务管理了),在其产生过程就进行了自动增强(通知).
+	可以直接使用
+	 -->
 </beans>

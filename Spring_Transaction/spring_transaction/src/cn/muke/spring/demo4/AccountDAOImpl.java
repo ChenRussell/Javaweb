@@ -2,6 +2,7 @@ package cn.muke.spring.demo4;
 
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
+/*JdbcDaoSupport会为连接池dataSource自动创建Jdbc模版*/
 public class AccountDAOImpl extends JdbcDaoSupport implements AccountDAO {
 
 	/**
