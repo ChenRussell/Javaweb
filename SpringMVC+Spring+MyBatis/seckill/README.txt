@@ -20,7 +20,7 @@ Java高并发秒杀API项目：
 
 4.秒杀业务分析
 
-5.DAO层设计与开发：
+5.DAO层设计与开发（接口设计+SQL编写）：
 	数据库设计
 	DAO层实体和接口编码
 	基于myBatis实现DAO
@@ -30,3 +30,5 @@ Java高并发秒杀API项目：
 	myBatis整合Spring
 		spring-framework-reference
 	DAO层单元测试编码和问题排查
+
+6.秒杀Service接口设计
