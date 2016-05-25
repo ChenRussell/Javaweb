@@ -19,6 +19,16 @@ public class SeckillExecution {
     //秒杀成功对象
     private SuccessKilled successKilled;
 
+    @Override
+    public String toString() {
+        return "SeckillExecution{" +
+                "seckillId=" + seckillId +
+                ", state=" + state +
+                ", stateInfo='" + stateInfo + '\'' +
+                ", successKilled=" + successKilled +
+                '}';
+    }
+
     //秒杀成功
     public SeckillExecution(int seckillId, SeckillStateEnums stateEnums, SuccessKilled successKilled) {
         this.seckillId = seckillId;

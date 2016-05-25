@@ -19,6 +19,18 @@ public class Exposer {
 
     private long end;
 
+    @Override
+    public String toString() {
+        return "Exposer{" +
+                "exposed=" + exposed +
+                ", md5='" + md5 + '\'' +
+                ", seckillId=" + seckillId +
+                ", now=" + now +
+                ", start=" + start +
+                ", end=" + end +
+                '}';
+    }
+
     //constructor构造方法
     public Exposer(String md5, boolean exposed, int seckillId) {
         this.md5 = md5;

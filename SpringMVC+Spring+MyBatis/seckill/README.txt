@@ -36,3 +36,22 @@ Java高并发秒杀API项目：
 7.实现SeckillService接口
 	所有编译期异常转化为运行期异常 ？
 	枚举 ？
+
+8.基于Spring托管Service依赖（即实现）
+	Spring IOC功能理解：
+		对象工厂+依赖管理  ----->  一致的访问接口（获取任意实例）
+	项目业务对象依赖：
+		SeckillService 依赖于： SeckillDao + SuccessKilledDao 依赖于：SqlSessionFactory 依赖于：DataSource...
+	IOC使用：
+		XML配置 -----> package-scan -----> Annotation注解（@Service   @Autowired）
+
+9.Spring声明式事务配置
+	配置事务管理器：
+		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	使用注解来管理事务行为：
+		<tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+	@Transactional
+
+10.集成测试Service逻辑
+	logback.xml ？
+
