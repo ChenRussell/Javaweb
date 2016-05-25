@@ -26,8 +26,9 @@ public class Exposer {
         this.seckillId = seckillId;
     }
 
-    public Exposer(long start, long end, long now, boolean exposed) {
+    public Exposer(long start, long end, long now, boolean exposed,int seckillId) {
         this.start = start;
+        this.seckillId = seckillId;
         this.end = end;
         this.now = now;
         this.exposed = exposed;

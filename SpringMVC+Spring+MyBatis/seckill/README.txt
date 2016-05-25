@@ -32,3 +32,7 @@ Java高并发秒杀API项目：
 	DAO层单元测试编码和问题排查
 
 6.秒杀Service接口设计
+
+7.实现SeckillService接口
+	所有编译期异常转化为运行期异常 ？
+	枚举 ？
