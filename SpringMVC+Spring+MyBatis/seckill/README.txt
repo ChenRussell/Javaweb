@@ -55,3 +55,11 @@ Java高并发秒杀API项目：
 10.集成测试Service逻辑
 	logback.xml ？
 
+11.前端交互设计 *****
+
+12.Restful接口设计
+
+13.整合配置SpringMVC框架
+
+14.使用SpringMVC实现Restful接口
+
