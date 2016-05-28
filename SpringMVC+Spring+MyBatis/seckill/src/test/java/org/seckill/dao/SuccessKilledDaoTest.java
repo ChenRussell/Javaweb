@@ -8,6 +8,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 import static org.junit.Assert.*;
 
 /**
@@ -31,7 +34,8 @@ public class SuccessKilledDaoTest {
         * 第二次：insertCount=0;
         * 所以联合主键不允许同一个用户重复秒杀！
         * */
-        int insertCount = successKilledDao.insertSuccessKilled(6,"13051189772");
+        Timestamp nowTime = new Timestamp(System.currentTimeMillis());
+        int insertCount = successKilledDao.insertSuccessKilled(6, "13051189772",nowTime);
         System.out.println("insertCount="+insertCount);
     }
 

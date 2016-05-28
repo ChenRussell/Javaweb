@@ -4,6 +4,9 @@ package org.seckill.dao;
 import org.apache.ibatis.annotations.Param;
 import org.seckill.entity.SuccessKilled;
 
+import java.sql.Time;
+import java.sql.Timestamp;
+
 /**
  * Created by Administrator on 2016/5/23.
  */
@@ -15,7 +18,7 @@ public interface SuccessKilledDao {
      * @param userPhone
      * @return
      */
-    int insertSuccessKilled(@Param("seckillId") int seckillId,@Param("userPhone") String userPhone);
+    int insertSuccessKilled(@Param("seckillId") int seckillId,@Param("userPhone") String userPhone,@Param("createTime") Timestamp createTime);
 
     /**
      * 根据id查询SuccessKilled并携带秒杀产品对象实体

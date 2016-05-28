@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -89,14 +91,15 @@ public class SeckillServiceImpl implements SeckillService {
             throw new SeckillException("seckill data rewrite");
         }
         //Ö´ÐÐÃëÉ±Âß¼­; ¼õ¿â´æ+¼ÇÂ¼¹ºÂòÃ÷Ï¸
-        Date nowTime = new Date();
+        Timestamp nowTime = new Timestamp(System.currentTimeMillis());
         try {
             int updateCount = seckillDao.reduceNumber(seckillId,nowTime);
             if(updateCount<=0){
                 throw new SeckillCloseException("seckill is closed");
             }
             else{
-                int insertCount = successKilledDao.insertSuccessKilled(seckillId,userPhone);
+
+                int insertCount = successKilledDao.insertSuccessKilled(seckillId,userPhone,nowTime);
                 //Î¨Ò»£ºseckillId,userPhone£¨ÁªºÏÖ÷¼ü£©
                 if(insertCount<=0){
                     //ÖØ¸´ÃëÉ±

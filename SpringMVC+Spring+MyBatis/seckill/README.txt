@@ -67,9 +67,13 @@ Java高并发秒杀API项目：
 	http://www.runoob.com/bootstrap/bootstrap-environment-setup.html
 
 16.交互逻辑编程
-	cookie登录交互
-	http://www.bootcdn.cn/
-	引入js文件时charset="GBK"解决中文乱码问题
+	cookie登录交互：
+		http://www.bootcdn.cn/
+		引入js文件时charset="GBK"解决中文乱码问题
+	计时交互
+		countdown函数使用
+	秒杀交互
+		Timestamp nowTime = new Timestamp(System.currentTimeMillis());
 
-17.
+17.项目总结
 
