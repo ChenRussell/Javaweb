@@ -95,6 +95,7 @@ public class SeckillServiceImpl implements SeckillService {
         try {
             int updateCount = seckillDao.reduceNumber(seckillId,nowTime);
             if(updateCount<=0){
+                //并发量太高，有可能在等行级锁的时候库存没有了,并且秒杀时间问题在前面已经验证。
                 throw new SeckillCloseException("seckill is closed");
             }
             else{
