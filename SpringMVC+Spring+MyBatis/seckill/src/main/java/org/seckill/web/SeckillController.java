@@ -93,6 +93,7 @@ public class SeckillController {
             return new SeckillResult<SeckillExecution>(true,seckillExecution);
         }
         catch (RepeatKillException e){
+            //捕获executeSeckill函数抛出的重复秒杀异常，并返回异常数据类型到前端
             SeckillExecution seckillExecution = new SeckillExecution(seckillId, SeckillStateEnums.REPEAT_KILL);
             return  new SeckillResult<SeckillExecution>(true,seckillExecution);
         }

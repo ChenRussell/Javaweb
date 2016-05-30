@@ -99,12 +99,18 @@ Service设计编码
 	exception包：
 		存放service接口所需要的异常,例：重复秒杀,秒杀已关闭...
 	dto包：
-		数据传输层,负责web与service间的数据传递
+		数据传输层,负责web与service间的数据传递,其实是service接口返回数据的封装
 
 7.实现SeckillService接口：
 	所有编译期异常转化为运行期异常：
-		spring声明式事务只会对运行期的异常进行回滚
-	枚举 ？
+		spring声明式事务只会对运行期的异常进行rollback回滚
+	如果SeckillServiceImpl事务组合逻辑没有错误,就返回new SeckillExecution(seckillId, SeckillStateEnums.SUCCESS,successKilled)
+	如果SeckillServiceImpl事务组合逻辑抛出异常,用try catch把可能的已设计出的异常抛出,在SeckillController里根据抛出的异常信息进行不同的new SeckillExecution返回
+	SeckillController里return new SeckillResult<SeckillExecution>(true,seckillExecution);统一的数据封装模式：
+		页面所有ajax请求返回类型，封装json结果，结果为泛型T
+	spring事务遇到(运行期)异常就会回滚不会提交
+	用枚举封装并表示常量字典：
+		新建enums包,类型为enum
 
 8.基于Spring托管Service依赖（即实现）
 	Spring IOC功能理解：

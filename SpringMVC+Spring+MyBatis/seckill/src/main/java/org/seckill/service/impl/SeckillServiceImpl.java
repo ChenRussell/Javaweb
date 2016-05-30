@@ -114,15 +114,15 @@ public class SeckillServiceImpl implements SeckillService {
             }
         }
         catch (SeckillCloseException e1){
-            throw e1;
+            throw e1;  //抛出异常
         }
         catch (RepeatKillException e2){
-            throw e2;
+            throw e2;   //抛出异常
         }
         catch (Exception e){
             logger.error(e.getMessage(),e);
-            //所有编译期异常转化为运行期异常 ？   以便rollback回滚
-            throw new SeckillException("seckill inner error:"+e.getMessage());
+            //所有编译期异常转化为运行期异常    以便rollback回滚
+            throw new SeckillException("seckill inner error:"+e.getMessage());    //抛出异常
         }
     }
 }
