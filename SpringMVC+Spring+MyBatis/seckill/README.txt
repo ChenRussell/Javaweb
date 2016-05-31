@@ -151,8 +151,28 @@ Web设计编码
 11.前端交互设计 *****
 
 12.Restful接口设计
+	Restful本身是一种优雅的URL表述方式：
+		GET   /seckill/list   秒杀列表
+		GET   /seckill/{id}/detail   详情页
+		POST  /seckill/{id}/{md5}/execution   执行秒杀
+		POST  /seckill/{seckillId}/execution
+		DELETE  /seckill/{id}/delete
+		/user/{uid}/followers   ----->  关注者列表
 
 13.整合配置SpringMVC框架
+	web.xml：
+		配置SpringMVC中央控制器Servlet：DispatcherServlet
+		配置SpringMVC需要加载的配置文件,实现三大框架的整合：
+			spring-dao.xml   spring-service.xml   spring-web.xml
+            MyBatis -> Spring  -> SpringMVC
+        匹配所有请求   “/”
+    spring-web.xml：
+    	配置SpringMVC：
+			开启SpringMVC注解模式    ----->   自动注册基于注解的URL适配与方法的映射
+			允许使用“/”做整体映射
+			配置jsp,显示ViewResolver     org.springframework.web.servlet.view.JstlView
+			扫描web相关的bean   ----->  SeckillController ：
+				<context:component-scan base-package="org.seckill.web"></context:component-scan>
 
 14.使用SpringMVC实现Restful接口
 
