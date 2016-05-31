@@ -114,21 +114,37 @@ Service设计编码
 
 8.基于Spring托管Service依赖（即实现）
 	Spring IOC功能理解：
-		对象工厂+依赖管理  ----->  一致的访问接口（获取任意实例）
+		对象工厂 + 依赖管理  ----->  一致的访问接口（获取任意实例）
 	项目业务对象依赖：
 		SeckillService 依赖于： SeckillDao + SuccessKilledDao 依赖于：SqlSessionFactory 依赖于：DataSource...
 	IOC使用：
-		XML配置 -----> package-scan -----> Annotation注解（@Service   @Autowired）
+		XML配置 -----> package-scan -----> Annotation注解：
+			spring-service.xml：
+			    <!--扫描service包下所有使用注解的类型 -->
+                <context:component-scan base-package="org.seckill.service"></context:component-scan>
+			SeckillServiceImpl中：
+				class SeckillServiceImpl（@Service）
+				private SeckillDao seckillDao;   private SuccessKilledDao successKilledDao;：
+					此前MyBatis内部Mapper已经实现dao接口并注入Spring容器中,直接注入Service依赖@Autowired
 
 9.Spring声明式事务配置
+	抛出运行期异常时Spring声明式事务rollback回滚
 	配置事务管理器：
 		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 	使用注解来管理事务行为：
 		<tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
-	@Transactional
+	SeckillServiceImpl下的executeSeckill方法：
+		@Transactional
+	若是只读操作或只有一条修改操作,则不需要事务管理
 
-10.集成测试Service逻辑
-	logback.xml ？
+10.集成测试Service逻辑：
+	注入seckillService对象：
+		@Autowired
+		private SeckillService seckillService;
+	logback.xml：
+		Log4J是Apache的一个开放源代码项目(http://logging.apache.org/log4j/docs/)，它是一个日志操作包。
+		通过使用Log4J,可以指定日志信息输出的目的地，控制每一条日志的输出格式，定义日志信息的级别。所有这些功能通过一个配置文件灵活进行配置。
+	注意看控制台的输出！
 
 
 Web设计编码
