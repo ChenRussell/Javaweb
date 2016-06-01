@@ -112,7 +112,7 @@ Service设计编码
 	用枚举封装并表示常量字典：
 		新建enums包,类型为enum
 
-8.基于Spring托管Service依赖（即实现）
+8.基于Spring托管Service依赖（即实现）：
 	Spring IOC功能理解：
 		对象工厂 + 依赖管理  ----->  一致的访问接口（获取任意实例）
 	项目业务对象依赖：
@@ -127,7 +127,7 @@ Service设计编码
 				private SeckillDao seckillDao;   private SuccessKilledDao successKilledDao;：
 					此前MyBatis内部Mapper已经实现dao接口并注入Spring容器中,直接注入Service依赖@Autowired
 
-9.Spring声明式事务配置
+9.Spring声明式事务配置：
 	抛出运行期异常时Spring声明式事务rollback回滚
 	配置事务管理器：
 		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
@@ -150,7 +150,7 @@ Service设计编码
 Web设计编码
 11.前端交互设计 *****
 
-12.Restful接口设计
+12.Restful接口设计：
 	Restful本身是一种优雅的URL表述方式：
 		GET   /seckill/list   秒杀列表
 		GET   /seckill/{id}/detail   详情页
@@ -159,7 +159,7 @@ Web设计编码
 		DELETE  /seckill/{id}/delete
 		/user/{uid}/followers   ----->  关注者列表
 
-13.整合配置SpringMVC框架
+13.整合配置SpringMVC框架：
 	web.xml：
 		配置SpringMVC中央控制器Servlet：DispatcherServlet
 		配置SpringMVC需要加载的配置文件,实现三大框架的整合：
@@ -174,10 +174,44 @@ Web设计编码
 			扫描web相关的bean   ----->  SeckillController ：
 				<context:component-scan base-package="org.seckill.web"></context:component-scan>
 
-14.使用SpringMVC实现Restful接口
+14.使用SpringMVC实现Restful接口：
+	Controller就是MVC中的控制层：接受参数,根据一些验证或判断进行页面跳转的控制（json数据 或 ModelAndView -> jsp+model  ）
+	SeckillController.java：
+		@Autowired
+		private SeckillService seckillService;
+		@RequestMapping(value = "/list",method = RequestMethod.GET)
+		public String list(Model model){
+			//获取列表页
+			List<Seckill> list = seckillService.getSeckillList();
+			model.addAttribute("list",list);
 
-15.基于bootstrap开发页面结构
+			//list.jsp + model = ModelAndView
+			return  "list";  /*   /WEB-INF/jsp/"list".jsp  */
+		}
+	dto中SeckillResult：
+		所有ajax请求返回类型，封装json结果，结果为泛型T：
+			return new SeckillResult<Exposer>(true,exposer);：
+				@RequestMapping(value = "/{seckillId}/exposer",
+                            method = RequestMethod.POST,
+                            produces = {"application/json;charset=UTF-8"})
+                    @ResponseBody  //SpringMVC会将SeckillResult<Exposer>封装为json
+                    public SeckillResult<Exposer> exposer(@PathVariable("seckillId") int seckillId){
+                        SeckillResult<Exposer> result;
+                        try {
+                            Exposer exposer =  seckillService.exportSeckillUrl(seckillId);
+                            result = new SeckillResult<Exposer>(true,exposer);
+                        }
+                        catch (Exception e){
+                            logger.error(e.getMessage(),e);
+                            result = new SeckillResult<Exposer>(false,e.getMessage());
+                        }
+                        return result;
+                    }
+
+15.基于bootstrap开发页面结构：
 	http://www.runoob.com/bootstrap/bootstrap-environment-setup.html
+	<%@include file="common/head.jsp"%>     ----->    提取各jsp页面公用代码
+	<%@include file="common/tag.jsp"%>      ----->    引入Jstl
 
 16.交互逻辑编程
 	cookie登录交互：

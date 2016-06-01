@@ -6,7 +6,7 @@
 <mapper namespace="org.seckill.dao.SuccessKilledDao">
 
     <insert id="insertSuccessKilled">
-        <!--主键冲突会报错-->
+        <!--无ignore主键冲突会报错，加入ignore后忽略该报错并返回0-->
         INSERT ignore INTO
           success_killed(seckill_id,user_phone,create_time)
         VALUE
