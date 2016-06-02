@@ -211,11 +211,33 @@ Web设计编码
 15.基于bootstrap开发页面结构：
 	http://www.runoob.com/bootstrap/bootstrap-environment-setup.html
 	<%@include file="common/head.jsp"%>     ----->    提取各jsp页面公用代码
-	<%@include file="common/tag.jsp"%>      ----->    引入Jstl
+	<%@include file="common/tag.jsp"%>      ----->    引入Jstl：
+		JSP 标准标签库（JSP Standard Tag Library，JSTL）是一个实现 Web应用程序中常见的通用功能的定制标记库集，这些功能包括迭代和条件判断、数据管理格式化、XML 操作以及数据库访问。
+		<c:forEach var="sk" items="${list}">    ----->   jstl + el
 
 16.交互逻辑编程
 	cookie登录交互：
-		http://www.bootcdn.cn/
+		js插件官网：http://www.bootcdn.cn/
+		javascript模块化开发
+		detail.jsp使用EL(Expression Language)表达式向javascript传入参数,el表达式其实是一种取值的方式：
+        	<script type="text/javascript">
+        		$(function(){
+        		  //detail.jsp使用EL表达式向javascript传入参数
+        		  seckill.detail.init({
+        			seckillId:${seckill.seckillId},
+        			startTime:${seckill.startTime.time},  //毫秒
+        			endTime:${seckill.endTime.time}
+        		  });
+        		});
+        	</script>
+        电话写入cookie：
+        	$.cookie('killPhone',inputPhone,{expires:7,path:'/seckill'});   7天有效期,写入seckill路径下
+		在cookie中查找手机号：
+        	var killPhone = $.cookie('killPhone');
+        在浏览器中输出相应信息便于debug：
+        	console.log("inputPhone="+inputPhone);//TODO
+        错误信息提示：
+        	$("#killPhoneMessage").hide().html('<label class="label label-danger">输入电话错误！</label>').show(300);
 		引入js文件时charset="GBK"解决中文乱码问题
 	计时交互
 		countdown函数使用

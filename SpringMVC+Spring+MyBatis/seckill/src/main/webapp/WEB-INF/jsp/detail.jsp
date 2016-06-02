@@ -65,7 +65,7 @@
 <script src="../../resources/script/seckill.js" type="text/javascript" charset="GBK"></script>
 <script type="text/javascript">
     $(function(){
-      //使用EL表达式传入参数
+      //detail.jsp使用EL表达式向javascript传入参数
       seckill.detail.init({
         seckillId:${seckill.seckillId},
         startTime:${seckill.startTime.time},  //毫秒
