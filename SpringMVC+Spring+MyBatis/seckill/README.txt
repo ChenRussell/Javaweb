@@ -239,10 +239,28 @@ Web设计编码
         错误信息提示：
         	$("#killPhoneMessage").hide().html('<label class="label label-danger">输入电话错误！</label>').show(300);
 		引入js文件时charset="GBK"解决中文乱码问题
-	计时交互
-		countdown函数使用
-	秒杀交互
+	计时交互：
+		$.get(seckill.URL.now(),{}, function (result) {
+						//URL：seckill.URL.now()
+						//参数：{}
+						//回调函数：function (result) {}
+						//回调结果：result
+                    });
+		countdown函数使用：
+			var killTime = new Date(startTime+1000);
+            seckillBox.countdown(killTime,function(event){
+            	//时间格式
+            	var format = event.strftime('秒杀倒计时; %D天 %H时 %M分 %S秒');
+            	seckillBox.html(format);
+            	/*时间完成后回调事件*/
+            }).on('finish.countdown',function(){
+            	//获取秒杀地址，执行秒杀
+            	seckill.handleSeckill(seckillId,seckillBox);
+            	});
+	秒杀交互：
+		使用one("click")事件，可以确保只绑定一次事件，防止重复提交以至于服务器重复收到同样的请求而业务繁忙。
 		Timestamp nowTime = new Timestamp(System.currentTimeMillis());
+		先隐藏按钮,等函数回调完成,即绑定按钮触发事件后,再把按钮显示(show)出来,保证系统的健壮性。
 
 17.项目总结
 
