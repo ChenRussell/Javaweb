@@ -265,9 +265,23 @@ Web设计编码
 17.项目总结
 
 18.高并发优化：
+	优化策略：
+		前端控制：暴露接口,按钮防重复（只绑定一次事件 , 防止用户不停地点击秒杀按钮）
+		动静态数据分离：CDN缓存静态资源  ？ ,后端缓存（redis）
+		事务竞争优化：减少事务锁时间    ？
 	redis缓存（服务器后端缓存）Seckill对象：
-		系统暴露秒杀接口只参照开启时间,结束时间等不变,静态数据,可以缓存至内存,降低数据库访问压力
-		从数据库中取数据相当于从硬盘取数据,时间 > 从内存取的时间
+		系统暴露秒杀接口只参照开启时间,结束时间等一时不变,静态数据,可以缓存至内存,降低数据库访问压力！
+		从数据库中取数据相当于从硬盘取数据,时间 > 从内存取数据的时间！
+		Tomcat中sql语句传送至Mysql服务端需要传送时间！
+		QPS  ？
+		pom.xml：
+			redis客户端：Jedis依赖
+			protostuff序列化依赖
+		spring-dao.xml：
+			因为redis不属于myBatis范畴,因此要自己注入已经写好的RedisDao bean
+		RedisDaoTest.java：
+			@Autowired   //自动装载RedisDao对象
+        	private RedisDao redisDao;
 		cmd下开启redis服务：
 			redis-server.exe redis.conf
 			redis-cli.exe -h 127.0.0.1 -p 6379 -a 123456

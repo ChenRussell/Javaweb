@@ -29,6 +29,7 @@ public class RedisDao {
             Jedis jedis = jedisPool.getResource();
             try {
                 String key = "seckill:"+seckillId;
+                //get得到的是byte[]，因此要反序列化得到Object
                 byte[] bytes = jedis.get(key.getBytes());
                 if(bytes!=null){
                     //缓存中获取到
