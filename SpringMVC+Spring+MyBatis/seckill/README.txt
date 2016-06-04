@@ -264,3 +264,15 @@ Web设计编码
 
 17.项目总结
 
+18.高并发优化：
+	redis缓存（服务器后端缓存）Seckill对象：
+		系统暴露秒杀接口只参照开启时间,结束时间等不变,静态数据,可以缓存至内存,降低数据库访问压力
+		从数据库中取数据相当于从硬盘取数据,时间 > 从内存取的时间
+		cmd下开启redis服务：
+			redis-server.exe redis.conf
+			redis-cli.exe -h 127.0.0.1 -p 6379 -a 123456
+		FLUSHALL：
+			清除整个redis数据（清楚全部KEYS）
+		KEYS *：
+			查看所有KEY值
+
