@@ -42,23 +42,39 @@ public class SeckillServiceTest {
 
     @Test
     public void testExportSeckillUrl() throws Exception {
-        int id = 5;
+        int id = 8;
         Exposer exposer = seckillService.exportSeckillUrl(id);
         logger.info("exposer={}",exposer);
 
-        //exposer=Exposer{exposed=true, md5='791ced66f7f47df119f2facd98f330a1', seckillId=5, now=0, start=0, end=0}
+        //exposer=Exposer{exposed=true, md5='4f97f45ebe2797cdaef6cc643ecff6d1', seckillId=8, now=0, start=0, end=0}
     }
 
     @Test
     public void testExecuteSeckill() throws Exception {
-        int id = 5;
-        String phone = "11051189778";
-        String md5 = "791ced66f7f47df119f2facd98f330a1";
+        int id = 8;
+        String phone = "11111111117";
+        String md5 = "4f97f45ebe2797cdaef6cc643ecff6d1";
+
         SeckillExecution execution = seckillService.executeSeckill(id, phone, md5);
+
         logger.info("execution={}",execution);
 
 
         //控制台有transaction控制，说明事务启用成功
 
+    }
+
+    @Test
+    public void testExecuteSeckillProcedure() throws Exception {
+        int seckillId = 8;
+        String userPhone = "11111111118";
+        Exposer exposer = seckillService.exportSeckillUrl(seckillId);
+        if(exposer.isExposed()){
+            String md5 = exposer.getMd5();
+
+            SeckillExecution execution = seckillService.executeSeckillProcedure(seckillId, userPhone, md5);
+
+            logger.info(execution.getStateInfo());
+        }
     }
 }

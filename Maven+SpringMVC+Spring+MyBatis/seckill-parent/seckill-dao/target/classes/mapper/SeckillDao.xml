@@ -36,4 +36,14 @@
         ORDER BY create_time DESC
         limit #{offset},#{limit}
     </select>
+
+    <!--MyBatis调用存储过程 -->
+    <select id="killByProcedure" statementType="CALLABLE">
+        CALL executeSeckill(
+          #{ seckillId , jdbcType = BIGINT , mode= IN },
+          #{ phone ,jdbcType = BIGINT , mode= IN },
+          #{ killTime , jdbcType = TIMESTAMP , mode= IN },
+          #{ result , jdbcType = BIGINT , mode= OUT }
+        )
+    </select>
 </mapper>

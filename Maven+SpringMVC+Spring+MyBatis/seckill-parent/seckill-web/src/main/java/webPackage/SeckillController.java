@@ -89,9 +89,11 @@ public class SeckillController {
         SeckillResult<SeckillExecution> result;
 
         try{
-            SeckillExecution seckillExecution = seckillService.executeSeckill(seckillId,phone,md5);
+            SeckillExecution seckillExecution = seckillService.executeSeckillProcedure(seckillId,phone,md5);
             return new SeckillResult<SeckillExecution>(true,seckillExecution);
         }
+        /*
+        由于executeSeckillProcedure已经将重复秒杀，秒杀结束（无库存）合并到返回的SeckillExecution中，所以不用再捕获这两个异常
         catch (RepeatKillException e){
             //捕获executeSeckill函数抛出的重复秒杀异常，并返回异常数据类型到前端
             SeckillExecution seckillExecution = new SeckillExecution(seckillId, SeckillStateEnums.REPEAT_KILL);
@@ -100,13 +102,12 @@ public class SeckillController {
         catch (SeckillCloseException e){
             SeckillExecution seckillExecution = new SeckillExecution(seckillId, SeckillStateEnums.END);
             return  new SeckillResult<SeckillExecution>(true,seckillExecution);
-        }
+        }*/
         catch (Exception e){
             logger.error(e.getMessage(),e);
             SeckillExecution seckillExecution = new SeckillExecution(seckillId, SeckillStateEnums.INNER_ERROR);
             return  new SeckillResult<SeckillExecution>(true,seckillExecution);
         }
-
     }
 
     @RequestMapping(value = "/time/now",method = RequestMethod.GET)
