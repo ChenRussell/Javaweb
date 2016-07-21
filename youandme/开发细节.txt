@@ -1,0 +1,17 @@
+1.发布模块：
+    web:war exploded
+2.关掉java.exe进程：
+    taskkill /f /im  java.exe  /t
+3.项目结构：
+    dao模块依赖于entity模块，其中dao模块的spring-dao.xml配置MyBatis与Spring的整合，将MyBatis
+    实现的dao接口注入到Spring IOC容器中。
+    service模块依赖于dao模块，其中的spring-service.xml配置扫描service包下所有的注解类型，自动装
+    载dao接口（的对象）。且通过@Service将实现的service对象加载到Spring IOC容器中。
+    web模块（controller），依赖于service模块，其中的spring-web.xml配置SpringMVC相关，例如开启
+    注解模式。controller内有各种URL请求的实现
+4.Json报406错：
+    The resource identified by this request is only capable of generating responses with
+    characteristics not acceptable according to the request "accept" headers.
+    解决方法：封装了的dto要生成相应的setter与getter方法
+5.注册时用户名，邮箱不能重复  //TODO
+6.Controller返回JSON的中文乱码没有解决  //TODO
