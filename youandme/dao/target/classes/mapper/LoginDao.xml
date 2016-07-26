@@ -3,19 +3,19 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="login.LoginDao">
+<mapper namespace="dao.LoginDao">
 
     <insert id="insertUser">
         INSERT
           user_tb
         VALUES
-          (DEFAULT,#{username},#{password},#{email})
+          (DEFAULT,#{username},#{password},#{email},DEFAULT,#{joinTime})
     </insert>
 
 
-    <select id="selectPyFromAllUser" resultType="String">
+    <select id="selectUserFromAllUser" resultType="User">
         SELECT
-          user_id
+          *
         FROM
           user_tb
         WHERE

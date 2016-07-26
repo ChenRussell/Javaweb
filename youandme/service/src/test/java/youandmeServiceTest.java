@@ -29,8 +29,8 @@ public class youandmeServiceTest {
     @Test
     public void testLogin() throws Exception {
         String stringToLogin = "1151650717@qq.com";
-        String password = "123";
-        boolean loginResult = youandmeService.login(stringToLogin,password);
-        System.out.println(loginResult);
+        String password = "12345678";
+        User user = youandmeService.login(stringToLogin,password);
+        System.out.println(user);
     }
 }

@@ -1,0 +1,14 @@
+.DynamicsDiv {
+    width: 590px;
+    height: auto;
+    margin: 0 auto;
+    margin-top: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.DynamicsDiv img, .DynamicsDiv video {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 5px;
+}

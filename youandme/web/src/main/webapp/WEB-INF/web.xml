@@ -10,6 +10,7 @@
     <servlet>
         <servlet-name>youandme-dispatcher</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+
         <!--
         配置SpringMVC需要加载的配置文件
         spring-dao.xml   spring-service.xml   spring-web.xml
@@ -26,4 +27,6 @@
         <!--默认匹配所有请求 -->
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
+
 </web-app>

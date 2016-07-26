@@ -43,7 +43,7 @@
         <!--注入sqlSessionFactory-->
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
         <!--给出需要扫描dao接口包 -->
-        <property name="basePackage" value="login"></property>
+        <property name="basePackage" value="dao"></property>
     </bean>
 
 </beans>

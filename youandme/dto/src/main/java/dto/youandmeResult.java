@@ -7,11 +7,11 @@ public class youandmeResult<T> {
 
     private T  data;//泛型数据
 
-    private boolean success;
+    private boolean success;//执行是否成功
 
-    private String info;
+    private String info;//提示信息
 
-    public youandmeResult(String info,boolean success ) {
+    public youandmeResult(boolean success,String info ) {
         this.success = success;
         this.info = info;
     }

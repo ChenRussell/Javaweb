@@ -13,5 +13,13 @@
     The resource identified by this request is only capable of generating responses with
     characteristics not acceptable according to the request "accept" headers.
     解决方法：封装了的dto要生成相应的setter与getter方法
-5.注册时用户名，邮箱不能重复  //TODO
+5.注册时用户名(不能为"null"字符串)与邮箱不能重复  //TODO
 6.Controller返回JSON的中文乱码没有解决  //TODO
+7.<!DOCTYPE html>在jsp中声明HTML5，否则有些css样式无法正常显示
+8.引入的cookie jq文件来自CDN，需联网，写入，修改cookie等操作需要在服务端完成！
+9.研究session与cookie机制（重写URL解决浏览器不支持cookie与redirect后可能的sessionId ？）  //TODO
+10.common/tag.jsp为tag标签库
+11.form表单中有参数enctype="multipart/form-data" ，controller的request.getParameter("testUsername");
+    会失效，返回值为null  ?
+12.ajaxFormDate（超大上传时页面会阻塞，所以只适用于发动态）
+13.文件共享 //TODO（多线程，监听进度，页面不会阻塞）

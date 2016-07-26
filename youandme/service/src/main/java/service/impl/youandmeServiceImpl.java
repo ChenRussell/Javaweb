@@ -1,9 +1,25 @@
 package service.impl;
 
-import login.LoginDao;
+import dao.DynamicsDao;
+import entity.User;
+import dao.LoginDao;
+import entity.socialDynamics;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import service.youandmeService;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/20.
@@ -16,18 +32,206 @@ public class youandmeServiceImpl implements youandmeService {
     @Autowired
     private LoginDao loginDao;
 
+    @Autowired
+    private DynamicsDao dynamicsDao;
+
     public int register(String username, String password,String email) {
-        int result = loginDao.insertUser(username,password,email);
+
+        /*注册时间为服务器的时间！*/
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String dateString = simpleDateFormat.format(date);
+
+        int result = loginDao.insertUser(username,password,email,dateString);
         return result;
     }
 
-    public boolean login(String stringToLogin, String password) {
-        String queryAllResult = loginDao.selectPyFromAllUser(stringToLogin,password);
-        if(queryAllResult==null){
-            return false;
+    public User login(String stringToLogin, String password) {
+
+        User user = loginDao.selectUserFromAllUser(stringToLogin, password);
+        return user;
+        //若登录不成功，返回为null
+        //若登录成功，返回数据库中全部字段
+    }
+
+
+    /**
+     * 文件上传，以Http请求，用户唯一标识为参数
+     * @param request
+     * @param userId
+     */
+    public void fileUpload(HttpServletRequest request,int userId) {
+
+        try{
+            //创建一个DiskFileItemFactory工厂
+            DiskFileItemFactory factory = new DiskFileItemFactory();
+            //创建一个文件上传解析器
+            ServletFileUpload upload = new ServletFileUpload(factory);
+            //解决上传文件名的中文乱码
+            upload.setHeaderEncoding("UTF-8");
+            //判断提交上来的数据是否是上传表单的数据
+            if(!ServletFileUpload.isMultipartContent(request)){
+                //按照传统方式获取数据
+                return;
+            }
+            /*将Http向Servlet请求过程中提交的数据解析为List
+             *每一个FileItem对应一个Form表单的输入项,可多选！！
+             */
+            List<FileItem> list = upload.parseRequest(request);
+            for(FileItem item : list){
+                //如果fileitem中封装的是普通输入项的数据
+                if(item.isFormField()){
+                    String name = item.getFieldName();
+                    //解决普通输入项的数据的中文乱码问题
+                    String value = item.getString("UTF-8");//TODO
+                    System.out.println(name + "=" + value);
+                }
+                else{
+                    //如果fileitem中封装的是上传文件
+                    //得到上传的文件名称，
+                    String filename = item.getName();//TODO
+                    System.out.println(filename);
+                    if(filename==null || filename.trim().equals("")){
+                        continue;
+                    }
+                    //注意：不同的浏览器提交的文件名是不一样的，有些浏览器提交上来的文件名是带有路径的，如：  c:\a\b\1.txt，而有些只是单纯的文件名，如：1.txt
+                    //处理获取到的上传文件的文件名的路径部分，只保留文件名部分
+                    filename = filename.substring(filename.lastIndexOf("\\")+1);
+                    //文件已经被提交到Servlet中，获取上传文件的输入流
+                    InputStream in = item.getInputStream();
+
+                    //服务器绝对路径
+                    String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
+                    File file = new File(savePath);
+                    //判断上传文件的保存目录是否存在
+                    if (!file.exists() && !file.isDirectory()) {
+                        System.out.println(savePath + "目录不存在，需要创建");
+                        //创建目录
+                        file.mkdir();
+                    }
+
+                    //创建一个文件输出流
+                    FileOutputStream out = new FileOutputStream(savePath + "\\" + filename);
+                    //创建一个缓冲区
+                    byte buffer[] = new byte[1024];
+                    //判断输入流中的数据是否已经读完的标识
+                    int len = 0;
+                    //循环将输入流读入到缓冲区当中，(len=in.read(buffer))>0就表示in里面还有数据
+                    while((len=in.read(buffer))>0){
+                        //使用FileOutputStream输出流将缓冲区的数据写入到指定的目录(savePath + "\\" + filename)当中
+                        out.write(buffer, 0, len);
+                    }
+                    //关闭输入流
+                    in.close();
+                    //关闭输出流
+                    out.close();
+                    //删除处理文件上传时生成的临时文件
+                    item.delete();
+                    System.out.println("上传文件成功");
+                }
+            }
+        }catch (Exception e) {
+            System.out.println("上传文件失败");
+            e.printStackTrace();
+        }
+    }
+
+    public void postDynamics(HttpServletRequest request, int userId) {
+
+        String dynamicsText = "";
+        String dynamicsFile = "";
+        try{
+            //创建一个DiskFileItemFactory工厂
+            DiskFileItemFactory factory = new DiskFileItemFactory();
+            //创建一个文件上传解析器
+            ServletFileUpload upload = new ServletFileUpload(factory);
+            //解决上传文件名的中文乱码
+            upload.setHeaderEncoding("UTF-8");
+            //判断提交上来的数据是否是上传表单的数据
+            if(!ServletFileUpload.isMultipartContent(request)){
+                //按照传统方式获取数据
+                return;
+            }
+            /*将Http向Servlet请求过程中提交的数据解析为List
+             *每一个FileItem对应一个Form表单的输入项,可多选！！
+             */
+            List<FileItem> list = upload.parseRequest(request);
+            for(FileItem item : list){
+                //如果fileitem中封装的是普通输入项的数据
+                if(item.isFormField()){
+                    String name = item.getFieldName();
+                    //解决普通输入项的数据的中文乱码问题
+                    dynamicsText = item.getString("UTF-8");
+                    System.out.println(name + "=" + dynamicsText);
+                }
+                else{
+                    //得到上传的文件名称，
+                    dynamicsFile = item.getName();
+                    System.out.println(dynamicsFile);
+                    if(dynamicsFile==null || dynamicsFile.trim().equals("")){
+                        continue;
+                    }
+                    //注意：不同的浏览器提交的文件名是不一样的，有些浏览器提交上来的文件名是带有路径的，如：  c:\a\b\1.txt，而有些只是单纯的文件名，如：1.txt
+                    //处理获取到的上传文件的文件名的路径部分，只保留文件名部分
+                    dynamicsFile = dynamicsFile.substring(dynamicsFile.lastIndexOf("\\")+1);
+                    //文件已经被提交到Servlet中，获取上传文件的输入流
+                    InputStream in = item.getInputStream();
+
+                    //服务器绝对路径
+                    String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
+                    File file = new File(savePath);
+                    //判断上传文件的保存目录是否存在
+                    if (!file.exists() && !file.isDirectory()) {
+                        System.out.println(savePath + "目录不存在，需要创建");
+                        //创建目录
+                        file.mkdir();
+                    }
+
+                    //创建一个文件输出流
+                    FileOutputStream out = new FileOutputStream(savePath+"/"+dynamicsFile);
+                    //创建一个缓冲区
+                    byte buffer[] = new byte[1024];
+                    //判断输入流中的数据是否已经读完的标识
+                    int len = 0;
+                    //循环将输入流读入到缓冲区当中，(len=in.read(buffer))>0就表示in里面还有数据
+                    while((len=in.read(buffer))>0){
+                        //使用FileOutputStream输出流将缓冲区的数据写入到指定的目录(savePath + "\\" + filename)当中
+                        out.write(buffer, 0, len);
+                    }
+                    //关闭输入流
+                    in.close();
+                    //关闭输出流
+                    out.close();
+                    //删除处理文件上传时生成的临时文件
+                    item.delete();
+                    System.out.println("上传动态成功");
+                    //将动态相关信息插入数据库中
+                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile);
+                }
+            }
+        }catch (Exception e) {
+            System.out.println("上传动态失败");
+            e.printStackTrace();
+        }
+    }
+
+    public List<socialDynamics> showDynamics() {
+        List<socialDynamics> list = dynamicsDao.selectAllDynamics();
+        return list;
+    }
+
+    public int curMaxDynamicsId() {
+        String curMaxDynamicsIdString = dynamicsDao.selectMaxDynamicsId();
+        if(curMaxDynamicsIdString==null){
+            return 0;
         }
         else{
-            return true;
+            return Integer.valueOf(curMaxDynamicsIdString);
         }
+    }
+
+    public List<socialDynamics> showNewDynamics(int pos) {
+        List<socialDynamics> list = dynamicsDao.selectDynamicsFromPos(pos);
+        return list;
     }
 }
