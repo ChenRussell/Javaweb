@@ -1,9 +1,10 @@
 package service.impl;
 
 import dao.DynamicsDao;
+import dao.UserDao;
+import entity.SocialDynamics;
 import entity.User;
 import dao.LoginDao;
-import entity.socialDynamics;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -12,11 +13,8 @@ import org.springframework.stereotype.Service;
 import service.youandmeService;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +32,9 @@ public class youandmeServiceImpl implements youandmeService {
 
     @Autowired
     private DynamicsDao dynamicsDao;
+
+    @Autowired
+    private UserDao userDao;
 
     public int register(String username, String password,String email) {
 
@@ -206,7 +207,8 @@ public class youandmeServiceImpl implements youandmeService {
                     item.delete();
                     System.out.println("上传动态成功");
                     //将动态相关信息插入数据库中
-                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile);
+                    Timestamp now = new Timestamp(System.currentTimeMillis());
+                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile,now);
                 }
             }
         }catch (Exception e) {
@@ -215,8 +217,8 @@ public class youandmeServiceImpl implements youandmeService {
         }
     }
 
-    public List<socialDynamics> showDynamics() {
-        List<socialDynamics> list = dynamicsDao.selectAllDynamics();
+    public List<SocialDynamics> showDynamics() {
+        List<SocialDynamics> list = dynamicsDao.selectAllDynamics();
         return list;
     }
 
@@ -230,8 +232,68 @@ public class youandmeServiceImpl implements youandmeService {
         }
     }
 
-    public List<socialDynamics> showNewDynamics(int pos) {
-        List<socialDynamics> list = dynamicsDao.selectDynamicsFromPos(pos);
+    public List<SocialDynamics> showNewDynamics(int pos) {
+        List<SocialDynamics> list = dynamicsDao.selectDynamicsFromPos(pos);
         return list;
+    }
+
+    public boolean changeHeadImg(HttpServletRequest request, int userId) {
+        String headimgName = "";
+        try{
+            DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
+            ServletFileUpload servletFileUpload = new ServletFileUpload(diskFileItemFactory);
+            servletFileUpload.setHeaderEncoding("UTF-8");
+            if(!ServletFileUpload.isMultipartContent(request)){
+                System.out.println("不是表单数据！");
+                return false;
+            }
+            List<FileItem> list = servletFileUpload.parseRequest(request);
+            for(FileItem item:list){
+                if(item.isFormField()){
+                    //普通输入文本数据
+                }else {
+                    headimgName = item.getName();
+                    headimgName = "isHeadImg"+headimgName.substring(headimgName.lastIndexOf("\\") + 1);
+                    InputStream inputStream = item.getInputStream();
+                    String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
+                    File file = new File(savePath);
+                    if(!file.exists()&&!file.isDirectory()){
+                        //新建文件夹
+                        System.out.println("新建头像文件夹");
+                        file.mkdir();
+                    }
+                    FileOutputStream fileOutputStream = new FileOutputStream(savePath+"/"+headimgName);
+                    byte[] buffer = new byte[1024];
+                    int len = 0;
+                    while((len = inputStream.read(buffer))>0){
+                        fileOutputStream.write(buffer,0,len);
+                    }
+                    inputStream.close();
+                    fileOutputStream.close();
+                    item.delete();
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        userDao.updateUserHeadImg(userId,userId+"/"+headimgName);//更新数据库中的头像信息
+        return true;
+    }
+
+    public boolean changePersonalInfo(int userId, String username, String email, String address, String description) {
+        int updateResult = userDao.updateUser(userId,username,email,address,description);
+        if(updateResult==1){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public User queryUserById(int userId) {
+        User user = userDao.selectUserById(userId);
+        return user;
     }
 }

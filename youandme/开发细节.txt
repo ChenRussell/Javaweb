@@ -23,3 +23,7 @@
     会失效，返回值为null  ?
 12.ajaxFormDate（超大上传时页面会阻塞，所以只适用于发动态）
 13.文件共享 //TODO（多线程，监听进度，页面不会阻塞）
+14.form表单内提交不能用button标签，因为会默认get请求方式，地址栏会出现相应参数
+15.在dao与service中TIMESTAMP的输出与数据库的保存都是yyyy-MM-dd HH:mm:ss格式（java.sql.Timestamp），在jsp页面按此格式输出，
+    但是在js输出就是时间戳的形式。
+16.涉及到更新资料要及时更新user session

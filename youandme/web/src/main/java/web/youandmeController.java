@@ -1,8 +1,8 @@
 package web;
 
 import dto.youandmeResult;
+import entity.SocialDynamics;
 import entity.User;
-import entity.socialDynamics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,7 +22,6 @@ public class youandmeController {
     //自动装载service写好的接口（已实现对象，存在SpringIOC容器中）
     @Autowired
     private youandmeService youandmeService;
-
 
     /**
      * 登录页面，包含注册
@@ -52,11 +51,10 @@ public class youandmeController {
             return "forward:/youandme/login";//服务器内部请求转发，URL地址栏不会改变
         }
         else {
-            //将session中的user传入Model中供jsp页面使用
             model.addAttribute("userModel",user);
 
             //每次刷新主页都显示全部动态信息
-            List<socialDynamics> list = youandmeService.showDynamics();
+            List<SocialDynamics> list = youandmeService.showDynamics();
             model.addAttribute("dynamicsModel",list);
 
             //用session记录当前最大的动态id
@@ -68,6 +66,25 @@ public class youandmeController {
         }
     }
 
+    /**
+     * 用户详细页面
+     * @param request
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/{userId}/userDetail" ,method = RequestMethod.GET)
+    public String userDetailPage(HttpServletRequest request,
+                                 Model model,
+                                 @PathVariable("userId") int userId){
+
+        User user = youandmeService.queryUserById(userId);
+        if(user!=null){
+            model.addAttribute("userModel",user);
+            return "userDetail";
+        }else{
+            return "forward:/youandme/index";
+        }
+    }
 
 
     /**
@@ -146,6 +163,62 @@ public class youandmeController {
     }
 
 
+    /**
+     * 用户更改头像操作
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeHeadImg",
+                    produces ={"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult changeHeadImg(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        int userId = ((User)session.getAttribute("user")).getUserId();
+
+        boolean changeResult = youandmeService.changeHeadImg(request, userId);
+        if(changeResult==true){
+            //涉及到更新资料要及时更新session
+            User newUser = youandmeService.queryUserById(userId);
+            session.setAttribute("user",newUser);//更新session
+            return new youandmeResult(newUser.getHeadImg(),true);
+        }
+        else{
+            return new youandmeResult(false,"头像上传失败");
+        }
+    }
+
+    /**
+     * 用户更新用户名，邮箱等文本资料
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "changeInfo",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult changeInfo(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");
+        int userId = user.getUserId();
+
+        String newUsername = request.getParameter("newUsername");
+        String newEmail = request.getParameter("newEmail");
+        String newAddress = request.getParameter("newAddress");
+        String newDescription = request.getParameter("newDescription");
+        boolean updateResult = youandmeService.changePersonalInfo(userId, newUsername, newEmail, newAddress, newDescription);
+
+        //涉及到更新资料需要及时更新session
+        user = youandmeService.queryUserById(userId);
+        session.setAttribute("user",user);//更新user session
+
+        if(updateResult==true){
+            return new youandmeResult(true,"更改资料成功");
+        }
+        else{
+            return new youandmeResult(false,"更改资料失败");
+        }
+    }
 
     /**
      * 用户上传动态操作
@@ -167,9 +240,11 @@ public class youandmeController {
         youandmeService.postDynamics(request, userId);
 
         //返回新的动态用于局部刷新
-        List<socialDynamics> list = youandmeService.showNewDynamics(pos);
+        List<SocialDynamics> list = youandmeService.showNewDynamics(pos);
         session.setAttribute("pos",youandmeService.curMaxDynamicsId());
 
-        return new youandmeResult<List<socialDynamics>>(list,true);
+        return new youandmeResult<List<SocialDynamics>>(list,true);
     }
+
+
 }

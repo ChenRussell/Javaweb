@@ -1,8 +1,8 @@
 package service;
 
 
+import entity.SocialDynamics;
 import entity.User;
-import entity.socialDynamics;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -47,7 +47,7 @@ public interface youandmeService {
      * 刷新进入主页时查看全部动态
      * @return
      */
-    List<socialDynamics> showDynamics();
+    List<SocialDynamics> showDynamics();
 
     /**
      * 返回当前页面动态最大主键值，如果没有就是0
@@ -60,5 +60,20 @@ public interface youandmeService {
      * @param pos
      * @return
      */
-    List<socialDynamics> showNewDynamics(int pos);
+    List<SocialDynamics> showNewDynamics(int pos);
+
+    boolean changeHeadImg(HttpServletRequest request,int userId);
+
+    /**
+     * 用户更改个人信息，成功返回true，失败返回false
+     * @param userId
+     * @param username
+     * @param email
+     * @param address
+     * @param description
+     * @return
+     */
+    boolean changePersonalInfo(int userId,String username,String email,String address,String description);
+
+    User queryUserById(int userId);
 }

@@ -7,9 +7,9 @@
 
     <insert id="insertUser">
         INSERT
-          user_tb
+          user(user_id,username,password,email,join_time)
         VALUES
-          (DEFAULT,#{username},#{password},#{email},DEFAULT,#{joinTime})
+          (DEFAULT,#{username},#{password},#{email},#{joinTime})
     </insert>
 
 
@@ -17,7 +17,7 @@
         SELECT
           *
         FROM
-          user_tb
+          user
         WHERE
           (username = #{stringToLogin} AND password = #{password}) OR (email = #{stringToLogin} AND password = #{password})
     </select>

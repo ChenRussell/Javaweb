@@ -11,9 +11,54 @@ public class User {
     private String password;
     private String email;
     private String address;
+    private String description;
+    private String headImg;
     private String joinTime;
+    private int dynamicsNum;
+    private int followingNum;
+    private int followersNum;
 
     public User() {
+    }
+
+    public String getHeadImg() {
+        return headImg;
+    }
+
+    public void setHeadImg(String headImg) {
+        this.headImg = headImg;
+    }
+
+    public int getFollowingNum() {
+        return followingNum;
+    }
+
+    public void setFollowingNum(int followingNum) {
+        this.followingNum = followingNum;
+    }
+
+    public int getDynamicsNum() {
+        return dynamicsNum;
+    }
+
+    public void setDynamicsNum(int dynamicsNum) {
+        this.dynamicsNum = dynamicsNum;
+    }
+
+    public int getFollowersNum() {
+        return followersNum;
+    }
+
+    public void setFollowersNum(int followersNum) {
+        this.followersNum = followersNum;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public User(String username) {
@@ -76,7 +121,12 @@ public class User {
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", address='" + address + '\'' +
+                ", description='" + description + '\'' +
+                ", headImg='" + headImg + '\'' +
                 ", joinTime='" + joinTime + '\'' +
+                ", dynamicsNum=" + dynamicsNum +
+                ", followingNum=" + followingNum +
+                ", followersNum=" + followersNum +
                 '}';
     }
 }

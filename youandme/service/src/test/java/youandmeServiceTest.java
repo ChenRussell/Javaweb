@@ -1,3 +1,4 @@
+import entity.SocialDynamics;
 import entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -5,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import service.youandmeService;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -32,5 +35,13 @@ public class youandmeServiceTest {
         String password = "12345678";
         User user = youandmeService.login(stringToLogin,password);
         System.out.println(user);
+    }
+
+    @Test
+    public void testShowDynamics() throws Exception {
+        List<SocialDynamics> list = youandmeService.showDynamics();
+        for(SocialDynamics socialDynamics:list){
+            System.out.println(socialDynamics);
+        }
     }
 }

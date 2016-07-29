@@ -1,8 +1,9 @@
 package dao;
 
-import entity.socialDynamics;
+import entity.SocialDynamics;
 import org.apache.ibatis.annotations.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -19,14 +20,15 @@ public interface DynamicsDao {
      */
     int insertDynamics(@Param("userId") int userId,
                        @Param("dynamicsText") String dynamicsText,
-                       @Param("dynamicsFile") String dynamicsFile);
+                       @Param("dynamicsFile") String dynamicsFile,
+                       @Param("createTime") Timestamp createTime);
 
 
     /**
      * 查找数据库表中全部个人动态
      * @return
      */
-    List<socialDynamics> selectAllDynamics();
+    List<SocialDynamics> selectAllDynamics();
 
     /**
      * 查找当前页面动态主键的最大值
@@ -39,6 +41,6 @@ public interface DynamicsDao {
      * @param dynamicsId
      * @return
      */
-    List<socialDynamics> selectDynamicsFromPos(@Param("dynamicsId") int dynamicsId);
+    List<SocialDynamics> selectDynamicsFromPos(@Param("dynamicsId") int dynamicsId);
 
 }

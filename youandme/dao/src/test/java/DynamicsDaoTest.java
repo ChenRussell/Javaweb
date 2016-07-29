@@ -1,14 +1,13 @@
 import dao.DynamicsDao;
-import entity.socialDynamics;
+import entity.SocialDynamics;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.sql.Timestamp;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Administrator on 2016/7/23.
@@ -24,16 +23,18 @@ public class DynamicsDaoTest {
         int userId = 116;
         String dynamicsText = "½ñÌì´òÇòÀ²£¡¹þ¹þ¹þ¹þ";
         String dynamicsFile = "D:\\file";
-        int insertDynamicsResult = dynamicsDao.insertDynamics(userId,dynamicsText,dynamicsFile);
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        int insertDynamicsResult = dynamicsDao.insertDynamics(userId,dynamicsText,dynamicsFile,now);
         System.out.println(insertDynamicsResult);
     }
 
     @Test
     public void testSelectAllDynamics() throws Exception {
 
-        List<socialDynamics> list = dynamicsDao.selectAllDynamics();
-        for(socialDynamics socialDynamics:list){
-            System.out.println(socialDynamics.getDynamicsText());
+        List<SocialDynamics> list = dynamicsDao.selectAllDynamics();
+        for(SocialDynamics socialDynamics:list){
+            System.out.println(socialDynamics);
+            System.out.println(socialDynamics.getUser());
         }
     }
 
@@ -44,7 +45,7 @@ public class DynamicsDaoTest {
 
     @Test
     public void testSelectDynamicsFromPos() throws Exception {
-        List<socialDynamics> list = dynamicsDao.selectDynamicsFromPos(15);
+        List<SocialDynamics> list = dynamicsDao.selectDynamicsFromPos(15);
         for(int i=0;i<list.size();i++){
             System.out.println(list.get(i));
         }

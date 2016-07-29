@@ -8,16 +8,25 @@
       INSERT
         social_dynamics
       VALUES
-        (DEFAULT,#{userId},#{dynamicsText},#{dynamicsFile})
+        (DEFAULT,#{userId},#{dynamicsText},#{dynamicsFile},#{createTime})
     </insert>
 
     <select id="selectAllDynamics" resultType="socialDynamics">
         SELECT
-          *
+          sd.dynamics_id,
+          sd.user_id,
+          sd.dynamics_text,
+          sd.dynamics_file,
+          sd.create_time,
+          ut.user_id "user.user_id",
+          ut.username "user.username",
+          ut.head_img "user.head_img"
         FROM
-          social_dynamics
+          social_dynamics AS sd
+        INNER JOIN
+          user AS ut USING(user_id)
         ORDER BY
-          dynamics_id
+          sd.dynamics_id
         DESC
     </select>
 
@@ -30,10 +39,19 @@
 
     <select id="selectDynamicsFromPos" resultType="socialDynamics">
       SELECT
-        *
+          sd.dynamics_id,
+          sd.user_id,
+          sd.dynamics_text,
+          sd.dynamics_file,
+          sd.create_time,
+          ut.user_id "user.user_id",
+          ut.username "user.username",
+          ut.head_img "user.head_img"
       FROM
-        social_dynamics
+          social_dynamics AS sd
+      INNER JOIN
+          user AS ut USING(user_id)
       WHERE
-        dynamics_id > #{dynamicsId}
+        sd.dynamics_id > #{dynamicsId}
     </select>
 </mapper>
