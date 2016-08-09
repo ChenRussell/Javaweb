@@ -34,4 +34,13 @@
           user_id = #{userId}
     </update>
 
+    <update id="updateDynamicsNum">
+        UPDATE
+          user
+        SET
+          dynamics_num = dynamics_num + 1
+        WHERE
+          user_id = #{userId}
+    </update>
+
 </mapper>

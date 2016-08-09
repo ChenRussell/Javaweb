@@ -27,3 +27,9 @@
 15.在dao与service中TIMESTAMP的输出与数据库的保存都是yyyy-MM-dd HH:mm:ss格式（java.sql.Timestamp），在jsp页面按此格式输出，
     但是在js输出就是时间戳的形式。
 16.涉及到更新资料要及时更新user session
+17.MyBatis一对多关联查询？
+18.MyBatis一对一关联查询中的映射注意点！
+19.js ajax 回调机制（先顺序执行全部ajax请求，回调快的最先被执行函数），   ---->  三层or多层嵌套
+20.js函数传参暂时无法实现传文本，只能传数字
+21.http://blog.csdn.net/liu4071325/article/details/8690499
+22.html的各div同级子元素最好规定样式名称，用nth-of-type选择器有弊端！

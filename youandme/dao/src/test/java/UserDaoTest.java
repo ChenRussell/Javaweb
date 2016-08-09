@@ -32,4 +32,10 @@ public class UserDaoTest {
         int testResult = userDao.updateUser(125,"史哥来啦更新","1151650717@qq.comyyyy","美国","我是史哥");
         System.out.println(testResult);
     }
+
+    @Test
+    public void testUpdateDynamicsNum() throws Exception {
+        int updateResult = userDao.updateDynamicsNum(122);
+        System.out.println(updateResult);
+    }
 }

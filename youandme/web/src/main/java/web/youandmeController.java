@@ -1,6 +1,8 @@
 package web;
 
 import dto.youandmeResult;
+import entity.CommentInfo;
+import entity.ReplyInfo;
 import entity.SocialDynamics;
 import entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import service.youandmeService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -238,6 +241,8 @@ public class youandmeController {
 
         //执行发表动态，即插入数据库与上传动态文件
         youandmeService.postDynamics(request, userId);
+        User user = youandmeService.queryUserById(userId);//涉及到更新用户动态信息，要更新user session
+        session.setAttribute("user",user);
 
         //返回新的动态用于局部刷新
         List<SocialDynamics> list = youandmeService.showNewDynamics(pos);
@@ -246,5 +251,213 @@ public class youandmeController {
         return new youandmeResult<List<SocialDynamics>>(list,true);
     }
 
+    /**
+     * 用户点赞操作
+     * @param request
+     * @return
+     */
+    @RequestMapping(value ="/clickLike",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult clickLike(HttpServletRequest request){
 
+        HttpSession session = request.getSession();
+        int userId = ((User)session.getAttribute("user")).getUserId();
+        int dynamicsId = Integer.valueOf(request.getParameter("dynamicsId"));
+
+        String clickLikeDynamicsResult = youandmeService.clickLikeDynamics(dynamicsId, userId);
+        int newLikeNum = Integer.valueOf(clickLikeDynamicsResult.substring(0, clickLikeDynamicsResult.lastIndexOf(".")));
+
+        if(clickLikeDynamicsResult.substring(clickLikeDynamicsResult.lastIndexOf(".")+1).equals("like")){
+            return new youandmeResult(newLikeNum,true);//点赞
+        }
+        else {
+            return new youandmeResult(newLikeNum,false);//取消点赞
+        }
+    }
+
+    /**
+     * 进入主页时对已经点赞的动态进行 “点赞” 显示
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/showLikeHelp",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showLikeHelp(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        int userId = ((User)session.getAttribute("user")).getUserId();
+        List<Integer> list = youandmeService.showWhichLike(userId);
+        return new youandmeResult<List<Integer>>(list,true);
+    }
+
+    /**
+     * 用户点击评论图标后模态框出现，返回动态信息
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/detailDynamicsById",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showDetailDynamicsById(HttpServletRequest request){
+        int dynamicsId = Integer.valueOf(request.getParameter("dynamicsId"));
+        SocialDynamics socialDynamics = youandmeService.showDetailDynamicsById(dynamicsId);
+        return new youandmeResult<SocialDynamics>(socialDynamics,true);
+    }
+
+    /**
+     * 用户点击评论图标后模态框出现，返回点赞用户id与头像
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/dynamicsOfLikeUser",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult<List<User>> showLikeUserOfDynamics(HttpServletRequest request){
+
+        int dynamicsId = Integer.valueOf(request.getParameter("dynamicsId"));
+        List<User> userList = youandmeService.showLikeUserOfDynamics(dynamicsId);
+
+        HttpSession session = request.getSession();
+        User user =(User)session.getAttribute("user");
+        userList.add(user);
+
+        return new youandmeResult<List<User>>(userList,true);
+    }
+
+    /**
+     * 将动态的评论数据返回至前端
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/showCommentOfDynamics",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showCommentOfDynamics(HttpServletRequest request){
+
+        int dynamicsId = Integer.valueOf(request.getParameter("dynamicsId"));
+        List<CommentInfo> commentList = youandmeService.showCommentById(dynamicsId);
+        return new youandmeResult<List<CommentInfo>>(commentList,true);
+    }
+
+    /**
+     * 用户对动态发表评论
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/sendComment",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult sendComment(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");
+        int dynamicsId = Integer.valueOf(request.getParameter("dynamicsId"));
+        String commentContent  = request.getParameter("commentContent");
+
+        CommentInfo commentInfo = youandmeService.sendComment(dynamicsId, user.getUserId(), commentContent);
+        return  new youandmeResult<CommentInfo>(commentInfo,true);
+    }
+
+    /**
+     * 回复评论时显示当前用户（头像）以及被回复用户名
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/replyCommentHelp",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult replyCommentHelp(HttpServletRequest request){
+
+        int commentId = Integer.valueOf(request.getParameter("commentId"));
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");//发表回复的用户信息
+        User user2 = youandmeService.showComment(commentId).getSendUser();//被回复用户的信息
+        List<User> list = new ArrayList<User>();
+        list.add(user);
+        list.add(user2);
+
+        return new youandmeResult<List<User>>(list,true);
+    }
+
+    /**
+     * 用户对动态的评论进行回复
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/sendReply",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult sendReply(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");
+
+        int sendId = user.getUserId();
+        int commentId = Integer.valueOf(request.getParameter("commentId"));
+        String replyCommentContent = request.getParameter("replyCommentContent");
+
+        ReplyInfo replyInfo = youandmeService.sendReply(commentId, sendId, replyCommentContent);
+        return new youandmeResult<ReplyInfo>(replyInfo,true);
+    }
+
+    /**
+     * 根据动态的评论id返回该评论的所有回复
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/showReplyOfComment",
+            produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showReplyOfComment(HttpServletRequest request){
+
+        int commentId = Integer.valueOf(request.getParameter("commentId"));
+        List<ReplyInfo> list = youandmeService.showAllReplyByCommentId(commentId);
+        return new youandmeResult<List<ReplyInfo>>(list,true);
+    }
+
+    /**
+     * 当用户要回复评论中的回复时，显示当前用户头像，要回复的用户名
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/replyReplyHelp",
+            produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult replyReplyHelp(HttpServletRequest request){
+
+        int replyId = Integer.valueOf(request.getParameter("replyId"));
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");//发表回复评论的回复的用户信息
+        User user2 = youandmeService.showReplyInfo(replyId).getSendUser();//被回复用户的信息
+        List<User> list = new ArrayList<User>();
+        list.add(user);
+        list.add(user2);
+
+        return new youandmeResult<List<User>>(list,true);
+    }
+
+    /**
+     * 用户对动态评论的回复进行回复
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/sendReplyOfReply",
+            produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult sendReplyOfReply(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");
+
+        int sendId = user.getUserId();
+        int replyId = Integer.valueOf(request.getParameter("replyId"));
+        String replyText = request.getParameter("replyText");
+
+        ReplyInfo replyInfo = youandmeService.sendReplyOfReply(replyId, sendId, replyText);
+
+        return new youandmeResult<ReplyInfo>(replyInfo,true);
+    }
 }

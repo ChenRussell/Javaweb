@@ -1,6 +1,7 @@
 package entity;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/23.
@@ -12,7 +13,17 @@ public class SocialDynamics {
     private String dynamicsText;
     private String dynamicsFile;
     private Timestamp createTime;
-    private User user;
+    private int likeNum;
+    private User user;//一对一，一条动态对应一个发布者
+    //private List<DynamicsLikeUser> dynamicsLikeUser;//一对多，一条动态可能有很多个点赞的用户
+
+    public int getLikeNum() {
+        return likeNum;
+    }
+
+    public void setLikeNum(int likeNum) {
+        this.likeNum = likeNum;
+    }
 
     public User getUser() {
         return user;
@@ -67,12 +78,13 @@ public class SocialDynamics {
 
     @Override
     public String toString() {
-        return "socialDynamics{" +
+        return "SocialDynamics{" +
                 "dynamicsId=" + dynamicsId +
                 ", userId=" + userId +
                 ", dynamicsText='" + dynamicsText + '\'' +
                 ", dynamicsFile='" + dynamicsFile + '\'' +
                 ", createTime=" + createTime +
+                ", likeNum=" + likeNum +
                 ", user=" + user +
                 '}';
     }

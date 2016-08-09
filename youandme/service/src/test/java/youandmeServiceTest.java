@@ -44,4 +44,5 @@ public class youandmeServiceTest {
             System.out.println(socialDynamics);
         }
     }
+
 }

@@ -1,7 +1,10 @@
 package service.impl;
 
+import dao.CommentDao;
 import dao.DynamicsDao;
 import dao.UserDao;
+import entity.CommentInfo;
+import entity.ReplyInfo;
 import entity.SocialDynamics;
 import entity.User;
 import dao.LoginDao;
@@ -35,6 +38,9 @@ public class youandmeServiceImpl implements youandmeService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private CommentDao commentDao;
 
     public int register(String username, String password,String email) {
 
@@ -208,7 +214,8 @@ public class youandmeServiceImpl implements youandmeService {
                     System.out.println("上传动态成功");
                     //将动态相关信息插入数据库中
                     Timestamp now = new Timestamp(System.currentTimeMillis());
-                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile,now);
+                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile,now);//数据库表中插入动态信息
+                    userDao.updateDynamicsNum(userId);//用户更新动态数量（+1）
                 }
             }
         }catch (Exception e) {
@@ -295,5 +302,98 @@ public class youandmeServiceImpl implements youandmeService {
     public User queryUserById(int userId) {
         User user = userDao.selectUserById(userId);
         return user;
+    }
+
+    public String clickLikeDynamics(int dynamicsId, int userId) {
+        int flag = 0;
+        int selectLikeResult = dynamicsDao.selectLike(dynamicsId, userId);
+        if(selectLikeResult == 0){
+            //用户还没点赞
+            flag = 1;
+            dynamicsDao.updateLikeNum(dynamicsId);
+            dynamicsDao.insertLike(dynamicsId, userId);
+
+        }else if(selectLikeResult==1) {
+            //用户已经点赞
+            dynamicsDao.updateLikeNumSub(dynamicsId);
+            dynamicsDao.deleteLike(dynamicsId, userId);
+        }
+        int newLikeNum = dynamicsDao.selectLikeNum(dynamicsId);
+        if(flag ==1){
+            return newLikeNum+".like";
+        }else{
+            return newLikeNum+".unlike";
+        }
+    }
+
+    public List<Integer> showWhichLike(int userId) {
+        List<Integer> list = dynamicsDao.selectWhichLike(userId);
+        return list;
+    }
+
+    public SocialDynamics showDetailDynamicsById(int dynamicsId) {
+        SocialDynamics socialDynamics = dynamicsDao.selectDetailDynamicsById(dynamicsId);
+        return socialDynamics;
+    }
+
+    public List<User> showLikeUserOfDynamics(int dynamicsId) {
+        List<User> list = dynamicsDao.selectLikeUserOfDynamics(dynamicsId);
+        return list;
+    }
+
+    public CommentInfo sendComment(int dynamicsId, int sendId,String commentText) {
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        SocialDynamics socialDynamics = dynamicsDao.selectDetailDynamicsById(dynamicsId);
+        int insertCommentResult = commentDao.insertComment(dynamicsId, sendId, socialDynamics.getUser().getUsername(), commentText,now);
+        if(insertCommentResult == 1){
+            CommentInfo commentInfo = commentDao.selectNewestCommentOfUser(sendId);
+            return commentInfo;
+        }
+        return null;
+    }
+
+    public List<CommentInfo> showCommentById(int dynamicsId) {
+        List<CommentInfo> list = commentDao.selectCommentByDynamicsId(dynamicsId);
+        return list;
+    }
+
+    public CommentInfo showComment(int commentId) {
+        CommentInfo commentInfo = commentDao.selectCommentById(commentId);
+        return commentInfo;
+    }
+
+    public ReplyInfo sendReply(int commentId, int sendId, String replyText) {
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        String receiveUsername = commentDao.selectCommentById(commentId).getSendUser().getUsername();
+        commentDao.insertReply(commentId, sendId, receiveUsername, replyText, now);
+
+        ReplyInfo replyInfo = commentDao.selectReplyInfoBysendId(sendId);
+        return replyInfo;
+    }
+
+    public List<ReplyInfo> showAllReplyByCommentId(int commentId) {
+        List<ReplyInfo> list = commentDao.selectReplyInfoByCommentId(commentId);
+        return list;
+    }
+
+    public ReplyInfo sendReplyOfReply(int replyId, int sendId, String replyText) {
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        ReplyInfo replyInfo = commentDao.selectReplyInfoById(replyId);//用户要进行回复的回复条
+        String receiveUsername = replyInfo.getSendUser().getUsername();
+        int commentId = replyInfo.getCommentId();
+
+        commentDao.insertReply(commentId,sendId,receiveUsername,replyText,now);
+
+        ReplyInfo replyInfo2 = commentDao.selectReplyInfoBysendId(sendId);//用户的最新回复
+        return replyInfo2;
+    }
+
+    public ReplyInfo showReplyInfo(int replyId) {
+        ReplyInfo replyInfo = commentDao.selectReplyInfoById(replyId);
+        return replyInfo;
     }
 }

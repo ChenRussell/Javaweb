@@ -10,6 +10,8 @@
 <head>
     <title>index</title>
     <link href="<%=basePath%>resources/css/index.css" rel="stylesheet">
+    <script src="<%=basePath%>resources/js/jquery-2.0.0.min.js" type="text/javascript"></script>
+    <script src="<%=basePath%>resources/js/index.js" type="text/javascript" charset="GB2312"></script>
 </head>
 <body>
 
@@ -80,7 +82,7 @@
             <c:set var="dynamicsFileTypeFinal" value="${fn:substringAfter(dynamicsFileType,'.')}"></c:set>
             <!--动态为文字+图片 -->
             <c:if test="${dynamicsFileTypeFinal =='jpg'}">
-                <div class="DynamicsDiv">
+                <div class="DynamicsDiv" id="${dynamics.dynamicsId}">
                     <!--用户头像 -->
                     <img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/${dynamics.user.headImg}">
                     <span>${dynamics.user.username}</span><!--发表动态的用户名字-->
@@ -90,13 +92,13 @@
                     <span>${dynamics.dynamicsText}</span>
                     <img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/${dynamics.dynamicsFile}">
                     <span><h4>16</h4></span>
-                    <span><h4>35</h4></span>
-                    <span><h4>13</h4></span>
+                    <span onclick="likeIt(this)" id='${dynamics.dynamicsId}like'><h4 id='${dynamics.dynamicsId}likeh4'>${dynamics.likeNum}</h4></span>
+                    <span onclick="commentIt(this)"><h4>13</h4></span>
                 </div>
             </c:if>
             <!--动态为文字+视频 -->
             <c:if test="${dynamicsFileTypeFinal=='mp4'}">
-                <div class="DynamicsDiv">
+                <div class="DynamicsDiv" id="${dynamics.dynamicsId}">
                     <img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/${dynamics.user.headImg}">
                     <span>${dynamics.user.username}</span>
                     <span><fmt:formatDate value="${dynamics.createTime}" pattern="yyyy/MM/dd HH:mm:ss"></fmt:formatDate></span>
@@ -108,8 +110,8 @@
                         <source src="http://139.129.47.176/J2ee fileUpload/Social dynamics/${dynamics.dynamicsFile}" type='video/mp4' />
                     </video>
                     <span><h4>16</h4></span>
-                    <span><h4>35</h4></span>
-                    <span><h4>13</h4></span>
+                    <span onclick="likeIt(this)" id='${dynamics.dynamicsId}like'><h4 id='${dynamics.dynamicsId}likeh4'>${dynamics.likeNum}</h4></span>
+                    <span onclick="commentIt(this)"><h4>13</h4></span>
                 </div>
             </c:if>
 
@@ -119,7 +121,15 @@
 
 </div>
 
-<script src="<%=basePath%>resources/js/jquery-2.0.0.min.js" type="text/javascript"></script>
-<script src="<%=basePath%>resources/js/index.js" type="text/javascript" charset="GB2312"></script>
+<div class="dynamisDetailOuter"></div>
+<div class="dynamisDetailContainer">
+    <!--
+    <button>
+        <img src="src/attention.png">
+        <span>关注</span>
+    </button>
+    -->
+</div>
+
 </body>
 </html>

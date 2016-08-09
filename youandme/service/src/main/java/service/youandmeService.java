@@ -1,10 +1,13 @@
 package service;
 
 
+import entity.CommentInfo;
+import entity.ReplyInfo;
 import entity.SocialDynamics;
 import entity.User;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -76,4 +79,67 @@ public interface youandmeService {
     boolean changePersonalInfo(int userId,String username,String email,String address,String description);
 
     User queryUserById(int userId);
+
+    /**
+     * 用户点赞，返回点赞后当前动态被点赞的总数
+     * @param dynamicsId
+     * @param userId
+     * @return
+     */
+    String clickLikeDynamics(int dynamicsId,int userId);
+
+    List<Integer> showWhichLike(int userId);
+
+    SocialDynamics showDetailDynamicsById(int dynamicsId);
+
+    List<User> showLikeUserOfDynamics(int dynamicsId);
+
+    /**
+     * 用户对特定动态发表评论
+     * @param dynamicsId
+     * @param sendId
+     * @param commentText
+     * @return
+     */
+    CommentInfo sendComment(int dynamicsId,int sendId,String commentText);
+
+    /**
+     * 根据动态id查找该动态的全部评论
+     * @param dynamicsId
+     * @return
+     */
+    List<CommentInfo> showCommentById(int dynamicsId);
+
+    /**
+     * 根据评论id查找评论信息
+     * @param commentId
+     * @return
+     */
+    CommentInfo showComment(int commentId);
+
+    /**
+     * 用户发表对动态评论的回复，返回ReplyInfo对象
+     * @param commentId
+     * @param sendId
+     * @param replyText
+     */
+    ReplyInfo sendReply(int commentId,int sendId,String replyText);
+
+    /**
+     * 查找评论的全部回复
+     * @param commentId
+     * @return
+     */
+    List<ReplyInfo> showAllReplyByCommentId(int commentId);
+
+    /**
+     * 用户对评论的回复进行回复
+     * @param replyId
+     * @param sendId
+     * @param replyText
+     * @return
+     */
+    ReplyInfo sendReplyOfReply(int replyId,int sendId,String replyText);
+
+    ReplyInfo showReplyInfo(int replyId);
 }
