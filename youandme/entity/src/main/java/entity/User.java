@@ -21,6 +21,13 @@ public class User {
     public User() {
     }
 
+    public User(int userId, String username, String headImg, String address) {
+        this.userId = userId;
+        this.username = username;
+        this.headImg = headImg;
+        this.address = address;
+    }
+
     public String getHeadImg() {
         return headImg;
     }

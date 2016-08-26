@@ -4,6 +4,7 @@
 <%
     String path = request.getContextPath();
     String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+    String socketPath = request.getServerName()+":"+request.getServerPort()+path+"/";
 %>
 <!DOCTYPE html>
 <html>
@@ -25,8 +26,9 @@
                 <a href="#">关于</a>
                 <span>YouAndMe</span>
                 <!-- //TODO 搜索 -->
-                <input type="text" class="navSearch" placeholder="Search dynamics" />
+                <input type="text" class="navSearch" placeholder="Search User" />
                 <span>语言：简体中文</span>
+                <div class="navSearchResult"></div>
             </div>
         </div>
     </div>
@@ -119,6 +121,39 @@
 
     </div>
 
+    <div class="searchToContact">
+        <span></span>
+        <span>Click here to contact</span>
+    </div>
+    <div class="searchUserToContact">
+        <div class="searchUserToContact_head" title="close">
+            <span>YouAndMe Chat</span>
+            <span></span>
+        </div>
+        <div class="searchUserToContact_body">
+            <div class="searchUserToContact_body_tips">
+                <span>Now type in and search friends to contact</span>
+            </div>
+        </div>
+        <input type="text" class="searchUserToContact_search" placeholder="Search friends..." />
+    </div>
+
+    <div class="contactDivFade">
+        <span></span>
+        <span>Open tab</span>
+    </div>
+    <div class="contactDivTrue">
+        <div class="contactDivTrue_left"></div>
+        <div class="contactDivTrue_right">
+            <div class="contactDivTrue_right_head"></div>
+            <div class="contactDivTrue_right_content" id="forScroll">
+                <!--聊天内容 -->
+            </div>
+            <input type="text" placeholder="Communicate..." class="contactDivTrue_right_input" />
+        </div>
+        <span class="useToClose" title="缩放窗口"></span>
+    </div>
+
 </div>
 
 <div class="dynamisDetailOuter"></div>
@@ -131,5 +166,23 @@
     -->
 </div>
 
+<div id="newsTips" style="display:none"></div>
+
 </body>
+<script type="text/javascript">
+    var socketPath = '<%=socketPath%>'
+    var sendUid = ${userModel.userId};
+    var sendName = '${userModel.username}';
+    var to = -1;
+
+    var arrayCur = 0;
+    var arrayObj = new Array(10);
+
+    var myInterval;
+    var intervalFlag = 0;
+
+    var newsArrayCur = 0;
+    var newsArrayObj = new Array(10);
+    var hasOpenedTab = 0;
+</script>
 </html>

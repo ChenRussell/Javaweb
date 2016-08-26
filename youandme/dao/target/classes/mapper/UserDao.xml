@@ -43,4 +43,11 @@
           user_id = #{userId}
     </update>
 
+    <select id="selectAllUserForLucene" resultType="User">
+      SELECT
+        *
+      FROM
+        user
+    </select>
+
 </mapper>

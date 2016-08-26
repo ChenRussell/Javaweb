@@ -1,12 +1,10 @@
 package service;
 
 
-import entity.CommentInfo;
-import entity.ReplyInfo;
-import entity.SocialDynamics;
-import entity.User;
+import entity.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -142,4 +140,30 @@ public interface youandmeService {
     ReplyInfo sendReplyOfReply(int replyId,int sendId,String replyText);
 
     ReplyInfo showReplyInfo(int replyId);
+
+    /**
+     * 首页根据用户名查找用户的Lucene搜索
+     * @param inputString
+     * @return 用户对象集合，其中用户名已带有高亮
+     */
+    List<User> luceneSearchUser(String inputString);
+
+    void addMessage(int fromId,String fromName,int toId,String messageText,Timestamp messageDate);
+
+    List<Message> showMessage(int fromId,int toId);
+
+    void uploadInfo(String fileName,String uploadUsername,Timestamp uploadTime);
+
+    List<PluploadFile> showUploadOfUser(String uploadUsername);
+
+    /**
+     * 根据id删除已经上传的文件
+     * @param request
+     * @param userId
+     * @param id
+     */
+    void deletePluploadFile(HttpServletRequest request,int userId,int id);
+
+    PluploadFile showFileOfId(int id);
+
 }

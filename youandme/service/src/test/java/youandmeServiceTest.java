@@ -45,4 +45,12 @@ public class youandmeServiceTest {
         }
     }
 
+    @Test
+    public void testLuceneSearchUser() throws Exception {
+        List<User> list = youandmeService.luceneSearchUser("»Æ¸´¹ó");
+        for(User user:list){
+            System.out.println(user);
+        }
+    }
+
 }

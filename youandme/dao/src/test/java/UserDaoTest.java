@@ -1,9 +1,12 @@
 import dao.UserDao;
+import entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -37,5 +40,13 @@ public class UserDaoTest {
     public void testUpdateDynamicsNum() throws Exception {
         int updateResult = userDao.updateDynamicsNum(122);
         System.out.println(updateResult);
+    }
+
+    @Test
+    public void testSelectAllUserForLucene() throws Exception {
+        List<User> userList = userDao.selectAllUserForLucene();
+        for(User user:userList){
+            System.out.println(user);
+        }
     }
 }

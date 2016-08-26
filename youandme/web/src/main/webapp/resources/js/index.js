@@ -308,6 +308,24 @@ var appendReplyOfReply = function(replyId){
 };
 
 $(function(){
+    Date.prototype.Format = function (fmt) { //author: meizz
+        var o = {
+            "M+": this.getMonth() + 1, //月份
+            "d+": this.getDate(), //日
+            "h+": this.getHours(), //小时
+            "m+": this.getMinutes(), //分
+            "s+": this.getSeconds(), //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S": this.getMilliseconds() //毫秒
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    };
+    for(var i =0;i<10;i++){//刚进来主页时，默认没有信息
+        newsArrayObj[i] = 0;
+    }
     /*ajaxFormData*/
     $("#dynamicsButton").on('click',function(){
         var formData = new FormData($( "#postDynamicsForm" )[0]);
@@ -393,4 +411,364 @@ $(function(){
             $(this).removeAttr('style');
         })
     });
+
+    $("body").keyup(function(e){
+        //用户正在输入
+        if($(".navSearch").val()!=""){
+            $(".navSearchResult").slideDown(100);
+            $.ajax({
+                url:"luceneSearchUser",
+                type:"POST",
+                data:{inputString:$(".navSearch").val()},
+                success:function(result){
+                    $(".navSearchResult").empty();
+                    var userList = result['data'];
+                    for(var i=0;i<userList.length;i++){
+                        $(".navSearchResult").append('<a href="'+userList[i]['userId']+'/userDetail" class="userOfSearch" id="searchUserResult'+userList[i]['userId']+'"></a>');
+                        $("#searchUserResult"+userList[i]['userId']).append('<img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/'+userList[i]['headImg']+'">');
+                        $("#searchUserResult"+userList[i]['userId']).append('<h1>'+userList[i]['username']+'</h1>');
+                        $("#searchUserResult"+userList[i]['userId']).append('<img src="../resources/src/location.png">');
+                        $("#searchUserResult"+userList[i]['userId']).append('<h1>'+userList[i]['address']+'</h1>');
+                    }
+                    $(".navSearchResult").css('height','auto');
+                    if($(".navSearchResult").height()>350){
+                        $(".navSearchResult").css('height','350px');
+                        $(".navSearchResult").css('overflow-y','auto');
+                    }
+                },
+                error:function(){
+                    alert("System inner error!");
+                }
+            });
+        }
+        //用户清空输入，搜索输入框为空
+        if($(".navSearch").val()==""){
+            $(".navSearchResult").css('display','none');
+        }
+
+        //用户contact前搜索friends
+        if($(".searchUserToContact_search").val()!=""){
+            $.ajax({
+                url:"luceneSearchUser",
+                type:"POST",
+                data:{inputString:$(".searchUserToContact_search").val()},
+                success:function(result){
+                    $(".searchUserToContact_body").empty();
+                    var userList = result['data'];
+                    for(var i=0;i<userList.length;i++){
+                        $(".searchUserToContact_body").append('<div class="userToContact" id="userToContact'+userList[i]['userId']+'" onclick="selectWhichToContact('+userList[i]['userId']+')"></div>');
+                        $("#userToContact"+userList[i]['userId']).append('<img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/'+userList[i]['headImg']+'">');
+                        $("#userToContact"+userList[i]['userId']).append('<span>'+userList[i]['username']+'</span>');
+                    }
+                    $(".searchUserToContact_body").css('height','auto');
+                    if($('.searchUserToContact_body').height()>300){
+                        $(".searchUserToContact_body").css('height','300px');
+                        $(".searchUserToContact_body").css('overflow-y','auto');
+                    }
+                },
+                error:function(){
+                    alert("System inner error!");
+                }
+            });
+        }
+        //用户清空搜索friends contact的输入框
+        if($(".searchUserToContact_search").val()==""){
+            $(".searchUserToContact_body").css('height','auto');
+            $(".searchUserToContact_body").empty();
+            $(".searchUserToContact_body").append('<div class="searchUserToContact_body_tips">'+
+               '<span>Now type in and search friends to contact</span>'+
+            '</div>');
+        }
+
+        var e = e||event;//兼容chrome，firefox，搜狗浏览器
+        if(e.keyCode==13&&$(".contactDivTrue_right_input").val()!=""){//用户在敲键盘时敲了回车
+            $(".contactDivTrue_right_content").append('<div class="contactContentRight">'+
+                                                        '<span>'+new Date().Format("yyyy-MM-dd hh:mm:ss")+'</span>'+
+                                                        '<span>'+$(".contactDivTrue_right_input").val()+'</span>'+
+                                                       '</div>');
+            var contactDiv = document.getElementById('forScroll');
+            contactDiv.scrollTop = contactDiv.scrollHeight;
+
+            var data = {};//新建data对象，并规定属性名与相应的值
+            data['fromId'] = sendUid;
+            data['fromName'] = sendName;
+            data['toId'] = to;
+            data['messageText'] = $(".contactDivTrue_right_input").val();
+            webSocket.send(JSON.stringify(data));//将对象封装成JSON后发送至服务器
+
+            $(".contactDivTrue_right_input").val("");
+        }
+    });
+
+    if($(".navSearchResult").height()>350){
+        $(".navSearchResult").css('height','350px');
+        $(".navSearchResult").css('overflow-y','auto');
+    }
+    $('.searchToContact').on('click',function(){
+        $('.searchToContact').css('display','none');
+        $('.searchUserToContact').css('opacity','1');
+        $('.searchUserToContact').css('transform','scale(1)');
+        $('.contactDivFade').css('right','300px');
+        $('.contactDivTrue').css('right','300px');
+
+        if($('.searchUserToContact_body').height()>300){
+            $(".searchUserToContact_body").css('height','300px');
+            $(".searchUserToContact_body").css('overflow-y','auto');
+        }
+    });
+    $('.searchUserToContact_head').on('click',function(){
+        $('.searchUserToContact').css('opacity','0');
+        $('.searchUserToContact').css('transform','scale(0.01)');
+        $('.searchToContact').fadeIn(10);
+        $('.contactDivFade').css('right','220px');
+        $('.contactDivTrue').css('right','220px');
+    });
+    $(".contactDivFade").on('click',function(){//打开聊天框
+        $(".contactDivFade").css('display','none');
+        $(".contactDivTrue").fadeIn(10);
+        hasOpenedTab=1;
+        seeOne(to);
+        removeHasChatSpot(to);
+        var contactDiv = document.getElementById('forScroll');
+        contactDiv.scrollTop = contactDiv.scrollHeight;
+    });
+    $(".useToClose").on('click',function(){//关掉聊天框
+        hasOpenedTab=0;
+        if(isSeeAllNews()==false){
+            window.clearInterval(myInterval);
+            intervalFlag = 0;
+        }
+        $(".contactDivTrue").css('display','none');
+        $(".contactDivFade").fadeIn(10);
+    });
+
+
+    //用户已进入主页就会建立Socket对象开始通信
+    var webSocket = new WebSocket("ws://"+socketPath+"/ws");
+    webSocket.onopen = function(event){
+        console.log("连接成功");
+        console.log(event);
+    };
+    webSocket.onerror = function(event){
+        console.log("连接失败");
+        console.log(event);
+    };
+    webSocket.onclose = function(event){
+        console.log("Socket连接断开");
+        console.log(event);
+    };
+    webSocket.onmessage = function(event){
+        //消息提示音
+        $("#newsTips").html('<audio autoplay="autoplay">'+
+            '<source src="http://xunlei.sc.chinaz.com/Files/DownLoad/sound1/201607/7499.wav" type="audio/wav" >'+
+        '</audio>');
+        hasNewsTips();//提供闪烁效果
+        console.log("收到一条消息");
+        console.log(event);
+        var message = JSON.parse(event.data);//将数据解析成JSON形式
+        newsArrayAddHelp(message['fromId']);
+        addHasChatSpot(message['fromId']);
+
+        if(isContain(message['fromId'])==false){//之前还没聊过天的，就要弹出contactDivTrue框
+            selectWhichToContact(message['fromId']);
+        }
+        if(isContain(message['fromId'])==true&&to==message['fromId']){
+            $(".contactDivTrue_right_content").append('<div class="contactContentLeft">'+
+                '<span>'+message['messageDate']+'</span>'+
+                '<span>'+message['messageText']+'</span>'+
+                '</div>');
+            var contactDiv = document.getElementById('forScroll');
+            contactDiv.scrollTop = contactDiv.scrollHeight;
+        }
+        if(hasOpenedTab==1&&isContain(message['fromId'])==true&&to==message['fromId']){
+            seeOne(message['fromId']);
+            removeHasChatSpot(message['fromId']);
+        }
+        if(isSeeAllNews()==false){
+            window.clearInterval(myInterval);
+            intervalFlag = 0;
+        }
+    }
 });
+
+/**
+ * 用户选中想要聊天的朋友
+ * 一定会打开contactDivTrue框，隐藏contactDivFade框
+ * @param obj
+ */
+var selectWhichToContact = function(obj){
+
+    to = obj;//设定发送信息至哪个friends（id）,原本是-1
+    seeOne(obj);
+    hasOpenedTab=1;
+    $.ajax({
+        url:"prepareUserToContact",
+        type:"POST",
+        data:{userId:obj},
+        success:function(result){
+            var user = result['data'];
+
+            $(".contactDivTrue").fadeIn(5);
+            $(".contactDivFade").css('display','none');
+
+            $(".contactDivTrue_left_img_outer").css('background-color','#1da1f2');
+            $(".contactDivTrue_right_head").empty();
+            $(".contactDivTrue_right_head").append('<span class="contactDivTrue_right_head_span">'+user['username']+'</span>');
+            if(isContain(obj)==false){
+                $(".contactDivTrue_left").append('<div class="contactDivTrue_left_img_outer" style="background-color:#8dd2eb;" id="changeUserToContact'+user['userId']+'" onclick="changeUserToContact('+user['userId']+')">'+
+                    '<img src="http://139.129.47.176/J2ee fileUpload/Social dynamics/'+user['headImg']+'" class="contactDivTrue_left_img">'+
+                    '<span class="hasChat" id="hasChat'+user["userId"]+'"></span>'+
+                    '</div>');
+
+                arrayObj[arrayCur++] = obj;
+            }
+            else{
+                $("#changeUserToContact"+user['userId']).css('background-color','#8dd2eb');
+            }
+            removeHasChatSpot(obj);
+            $(".contactDivTrue_right_content").empty();
+            showContentInThePast(obj);
+        },
+        error:function(){
+            alert("System inner error!");
+        }
+    });
+};
+
+var changeUserToContact = function(obj){
+
+    to = obj;//用户改变想要聊天的用户（窗口）
+    seeOne(obj);
+    $.ajax({
+        url:"prepareUserToContact",
+        type:"POST",
+        data:{userId:obj},
+        success:function(result){
+            var user = result['data'];
+            $(".contactDivTrue_left_img_outer").css('background-color','#1da1f2');
+            $("#changeUserToContact"+user['userId']).css('background-color','#8dd2eb');
+            $(".contactDivTrue_right_head").empty();
+            $(".contactDivTrue_right_head").append('<span class="contactDivTrue_right_head_span">'+user['username']+'</span>');
+
+            removeHasChatSpot(obj);
+            $(".contactDivTrue_right_content").empty();
+            showContentInThePast(obj);
+        },
+        error:function(){
+            alert("System inner error!");
+        }
+    });
+};
+/**
+ * 判断是否跟此用户进行了聊天
+ * 已经聊天过了返回true，还没聊天的返回false
+ * @param e
+ * @returns {boolean}
+ */
+var isContain = function(e){
+    for(var i =0;i<10;i++){
+        if(arrayObj[i] == e){
+            return true;
+        }
+    }
+    return false;
+};
+/**
+ * 查找两个用户过去的聊天记录
+ * @param obj
+ */
+var showContentInThePast = function(obj){
+    $.ajax({
+        url:"showContentInThePast",
+        type:"POST",
+        data:{toId:obj},
+        success:function(result){
+            var contentList = result['data'];
+            for(var i=0;i<contentList.length;i++){
+                if(sendUid==contentList[i]['fromId']){
+                    $(".contactDivTrue_right_content").append('<div class="contactContentRight">'+
+                        '<span>'+new Date(contentList[i]['messageDate']).Format("yyyy-MM-dd hh:mm:ss")+'</span>'+
+                        '<span>'+contentList[i]['messageText']+'</span>'+
+                        '</div>');
+                }else{
+                    $(".contactDivTrue_right_content").append('<div class="contactContentLeft">'+
+                        '<span>'+new Date(contentList[i]['messageDate']).Format("yyyy-MM-dd hh:mm:ss")+'</span>'+
+                        '<span>'+contentList[i]['messageText']+'</span>'+
+                        '</div>');
+                }
+            }
+            var contactDiv = document.getElementById('forScroll');
+            contactDiv.scrollTop = contactDiv.scrollHeight;
+        },
+        error:function(){
+            alert("System inner error!");
+        }
+    });
+};
+
+/**
+ * 有消息时contactDivFade框提供闪烁效果提示有信息
+ */
+var hasNewsTips = function(){
+    hasNewsTipsHelp();
+    if(intervalFlag==0){
+        myInterval = window.setInterval("hasNewsTipsHelp()",3000);
+        intervalFlag = 1;
+    }
+};
+var hasNewsTipsHelp = function(){
+    $(".contactDivFade").css("background","-webkit-linear-gradient(top,#b0fffe,#1ededc)");
+    $(".contactDivFade").css("background","-moz-linear-gradient(top,#b0fffe,#1ededc)");
+    window.setTimeout("$('.contactDivFade').css('background','#f6f7f9');",600);
+};
+
+/**
+ *查看当前用户是否看完了全部信息
+ * 如果还有新信息未查看，返回true
+ * 如果已经查看全部信息/没有新信息  返回false
+ * @returns {boolean}
+ */
+var isSeeAllNews = function(){
+    for(var i=0;i<10;i++){
+        if(newsArrayObj[i]>0){
+            return true;
+        }
+    }
+    return false;
+};
+/**
+ * 用户已经查看fromId为obj的信息
+ * @param obj
+ */
+var seeOne = function(obj){
+    for(var i=0;i<10;i++){
+        if(newsArrayObj[i]==obj){
+            newsArrayObj[i] = 0;
+        }
+    }
+};
+/**
+ * 数组储存有消息的fromId用户
+ * @param obj
+ */
+var newsArrayAddHelp = function(obj){
+    var fadeFlag = 0;
+    for(var i=0;i<10;i++){
+        if(newsArrayObj[i]==obj){
+            fadeFlag = 1;
+        }
+    }
+    if(fadeFlag==0){
+        newsArrayObj[newsArrayCur++] = obj;
+    }
+};
+/**
+ * 关于hasChat的有无
+ * @param obj
+ */
+var removeHasChatSpot = function(obj){
+    $("#hasChat"+obj).css('display','none');
+};
+var addHasChatSpot = function(obj){
+    $("#hasChat"+obj).fadeIn(1);
+};

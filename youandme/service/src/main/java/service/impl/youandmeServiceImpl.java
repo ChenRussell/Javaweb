@@ -1,35 +1,52 @@
 package service.impl;
 
-import dao.CommentDao;
-import dao.DynamicsDao;
-import dao.UserDao;
-import entity.CommentInfo;
-import entity.ReplyInfo;
-import entity.SocialDynamics;
-import entity.User;
-import dao.LoginDao;
+import dao.*;
+import entity.*;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import service.youandmeService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.file.FileSystems;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/20.
  */
-//@Service×¢½â£º½«Ğ´ºÃµÄyouandmeService×¢Èëµ½SpringIOCÈİÆ÷ÖĞ
+//@Service×¢ï¿½â£ºï¿½ï¿½ï¿½ï¿½Springï¿½ï¿½ï¿½ï¿½Ğ´ï¿½Ãµï¿½youandmeService×¢ï¿½ëµ½SpringIOCï¿½ï¿½ï¿½ï¿½ï¿½Ô¹ï¿½Ê¹ï¿½ï¿½
 @Service
 public class youandmeServiceImpl implements youandmeService {
 
-    //×Ô¶¯×°ÅäÔÚSpringIOCÈİÆ÷ÖĞµÄdaoÄ£¿é½Ó¿Ú,²»ĞèÒªÊÖ¶¯ĞÂ½¨ÏàÓ¦ÊµÀı
+    //ï¿½Ô¶ï¿½×°ï¿½ï¿½ï¿½ï¿½SpringIOCï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½daoÄ£ï¿½ï¿½Ó¿ï¿½,ï¿½ï¿½ï¿½ï¿½Òªï¿½Ö¶ï¿½ï¿½Â½ï¿½ï¿½ï¿½Ó¦Êµï¿½ï¿½
     @Autowired
     private LoginDao loginDao;
 
@@ -42,9 +59,15 @@ public class youandmeServiceImpl implements youandmeService {
     @Autowired
     private CommentDao commentDao;
 
+    @Autowired
+    private MessageDao messageDao;
+
+    @Autowired
+    private PluploadDao pluploadDao;
+
     public int register(String username, String password,String email) {
 
-        /*×¢²áÊ±¼äÎª·şÎñÆ÷µÄÊ±¼ä£¡*/
+        /*×¢ï¿½ï¿½Ê±ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä£¡*/
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String dateString = simpleDateFormat.format(date);
@@ -57,88 +80,88 @@ public class youandmeServiceImpl implements youandmeService {
 
         User user = loginDao.selectUserFromAllUser(stringToLogin, password);
         return user;
-        //ÈôµÇÂ¼²»³É¹¦£¬·µ»ØÎªnull
-        //ÈôµÇÂ¼³É¹¦£¬·µ»ØÊı¾İ¿âÖĞÈ«²¿×Ö¶Î
+        //ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªnull
+        //ï¿½ï¿½ï¿½ï¿½Â¼ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½Ö¶ï¿½
     }
 
 
     /**
-     * ÎÄ¼şÉÏ´«£¬ÒÔHttpÇëÇó£¬ÓÃ»§Î¨Ò»±êÊ¶Îª²ÎÊı
+     * ï¿½Ä¼ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½Httpï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Î¨Ò»ï¿½ï¿½Ê¶Îªï¿½ï¿½ï¿½ï¿½
      * @param request
      * @param userId
      */
     public void fileUpload(HttpServletRequest request,int userId) {
 
         try{
-            //´´½¨Ò»¸öDiskFileItemFactory¹¤³§
+            //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DiskFileItemFactoryï¿½ï¿½ï¿½ï¿½
             DiskFileItemFactory factory = new DiskFileItemFactory();
-            //´´½¨Ò»¸öÎÄ¼şÉÏ´«½âÎöÆ÷
+            //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             ServletFileUpload upload = new ServletFileUpload(factory);
-            //½â¾öÉÏ´«ÎÄ¼şÃûµÄÖĞÎÄÂÒÂë
+            //ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             upload.setHeaderEncoding("UTF-8");
-            //ÅĞ¶ÏÌá½»ÉÏÀ´µÄÊı¾İÊÇ·ñÊÇÉÏ´«±íµ¥µÄÊı¾İ
+            //ï¿½Ğ¶ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if(!ServletFileUpload.isMultipartContent(request)){
-                //°´ÕÕ´«Í³·½Ê½»ñÈ¡Êı¾İ
+                //ï¿½ï¿½ï¿½Õ´ï¿½Í³ï¿½ï¿½Ê½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
                 return;
             }
-            /*½«HttpÏòServletÇëÇó¹ı³ÌÖĞÌá½»µÄÊı¾İ½âÎöÎªList
-             *Ã¿Ò»¸öFileItem¶ÔÓ¦Ò»¸öForm±íµ¥µÄÊäÈëÏî,¿É¶àÑ¡£¡£¡
+            /*ï¿½ï¿½Httpï¿½ï¿½Servletï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½İ½ï¿½ï¿½ï¿½ÎªList
+             *Ã¿Ò»ï¿½ï¿½FileItemï¿½ï¿½Ó¦Ò»ï¿½ï¿½Formï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½É¶ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½
              */
             List<FileItem> list = upload.parseRequest(request);
             for(FileItem item : list){
-                //Èç¹ûfileitemÖĞ·â×°µÄÊÇÆÕÍ¨ÊäÈëÏîµÄÊı¾İ
+                //ï¿½ï¿½ï¿½fileitemï¿½Ğ·ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 if(item.isFormField()){
                     String name = item.getFieldName();
-                    //½â¾öÆÕÍ¨ÊäÈëÏîµÄÊı¾İµÄÖĞÎÄÂÒÂëÎÊÌâ
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     String value = item.getString("UTF-8");//TODO
                     System.out.println(name + "=" + value);
                 }
                 else{
-                    //Èç¹ûfileitemÖĞ·â×°µÄÊÇÉÏ´«ÎÄ¼ş
-                    //µÃµ½ÉÏ´«µÄÎÄ¼şÃû³Æ£¬
+                    //ï¿½ï¿½ï¿½fileitemï¿½Ğ·ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½
+                    //ï¿½Ãµï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Æ£ï¿½
                     String filename = item.getName();//TODO
                     System.out.println(filename);
                     if(filename==null || filename.trim().equals("")){
                         continue;
                     }
-                    //×¢Òâ£º²»Í¬µÄä¯ÀÀÆ÷Ìá½»µÄÎÄ¼şÃûÊÇ²»Ò»ÑùµÄ£¬ÓĞĞ©ä¯ÀÀÆ÷Ìá½»ÉÏÀ´µÄÎÄ¼şÃûÊÇ´øÓĞÂ·¾¶µÄ£¬Èç£º  c:\a\b\1.txt£¬¶øÓĞĞ©Ö»ÊÇµ¥´¿µÄÎÄ¼şÃû£¬Èç£º1.txt
-                    //´¦Àí»ñÈ¡µ½µÄÉÏ´«ÎÄ¼şµÄÎÄ¼şÃûµÄÂ·¾¶²¿·Ö£¬Ö»±£ÁôÎÄ¼şÃû²¿·Ö
+                    //×¢ï¿½â£ºï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ç²ï¿½Ò»ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ğ©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ç£º  c:\a\b\1.txtï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ©Ö»ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç£º1.txt
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     filename = filename.substring(filename.lastIndexOf("\\")+1);
-                    //ÎÄ¼şÒÑ¾­±»Ìá½»µ½ServletÖĞ£¬»ñÈ¡ÉÏ´«ÎÄ¼şµÄÊäÈëÁ÷
+                    //ï¿½Ä¼ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½Servletï¿½Ğ£ï¿½ï¿½ï¿½È¡ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     InputStream in = item.getInputStream();
 
-                    //·şÎñÆ÷¾ø¶ÔÂ·¾¶
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½
                     String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
                     File file = new File(savePath);
-                    //ÅĞ¶ÏÉÏ´«ÎÄ¼şµÄ±£´æÄ¿Â¼ÊÇ·ñ´æÔÚ
+                    //ï¿½Ğ¶ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½Ä±ï¿½ï¿½ï¿½Ä¿Â¼ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
                     if (!file.exists() && !file.isDirectory()) {
-                        System.out.println(savePath + "Ä¿Â¼²»´æÔÚ£¬ĞèÒª´´½¨");
-                        //´´½¨Ä¿Â¼
+                        System.out.println(savePath + "Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½");
+                        //ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
                         file.mkdir();
                     }
 
-                    //´´½¨Ò»¸öÎÄ¼şÊä³öÁ÷
+                    //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     FileOutputStream out = new FileOutputStream(savePath + "\\" + filename);
-                    //´´½¨Ò»¸ö»º³åÇø
+                    //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     byte buffer[] = new byte[1024];
-                    //ÅĞ¶ÏÊäÈëÁ÷ÖĞµÄÊı¾İÊÇ·ñÒÑ¾­¶ÁÍêµÄ±êÊ¶
+                    //ï¿½Ğ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½Ê¶
                     int len = 0;
-                    //Ñ­»·½«ÊäÈëÁ÷¶ÁÈëµ½»º³åÇøµ±ÖĞ£¬(len=in.read(buffer))>0¾Í±íÊ¾inÀïÃæ»¹ÓĞÊı¾İ
+                    //Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ëµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½(len=in.read(buffer))>0ï¿½Í±ï¿½Ê¾inï¿½ï¿½ï¿½æ»¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     while((len=in.read(buffer))>0){
-                        //Ê¹ÓÃFileOutputStreamÊä³öÁ÷½«»º³åÇøµÄÊı¾İĞ´Èëµ½Ö¸¶¨µÄÄ¿Â¼(savePath + "\\" + filename)µ±ÖĞ
+                        //Ê¹ï¿½ï¿½FileOutputStreamï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ´ï¿½ëµ½Ö¸ï¿½ï¿½ï¿½ï¿½Ä¿Â¼(savePath + "\\" + filename)ï¿½ï¿½ï¿½ï¿½
                         out.write(buffer, 0, len);
                     }
-                    //¹Ø±ÕÊäÈëÁ÷
+                    //ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     in.close();
-                    //¹Ø±ÕÊä³öÁ÷
+                    //ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     out.close();
-                    //É¾³ı´¦ÀíÎÄ¼şÉÏ´«Ê±Éú³ÉµÄÁÙÊ±ÎÄ¼ş
+                    //É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ï´ï¿½Ê±ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½
                     item.delete();
-                    System.out.println("ÉÏ´«ÎÄ¼ş³É¹¦");
+                    System.out.println("ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½É¹ï¿½");
                 }
             }
         }catch (Exception e) {
-            System.out.println("ÉÏ´«ÎÄ¼şÊ§°Ü");
+            System.out.println("ï¿½Ï´ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½");
             e.printStackTrace();
         }
     }
@@ -148,78 +171,78 @@ public class youandmeServiceImpl implements youandmeService {
         String dynamicsText = "";
         String dynamicsFile = "";
         try{
-            //´´½¨Ò»¸öDiskFileItemFactory¹¤³§
+            //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DiskFileItemFactoryï¿½ï¿½ï¿½ï¿½
             DiskFileItemFactory factory = new DiskFileItemFactory();
-            //´´½¨Ò»¸öÎÄ¼şÉÏ´«½âÎöÆ÷
+            //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             ServletFileUpload upload = new ServletFileUpload(factory);
-            //½â¾öÉÏ´«ÎÄ¼şÃûµÄÖĞÎÄÂÒÂë
+            //ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             upload.setHeaderEncoding("UTF-8");
-            //ÅĞ¶ÏÌá½»ÉÏÀ´µÄÊı¾İÊÇ·ñÊÇÉÏ´«±íµ¥µÄÊı¾İ
+            //ï¿½Ğ¶ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if(!ServletFileUpload.isMultipartContent(request)){
-                //°´ÕÕ´«Í³·½Ê½»ñÈ¡Êı¾İ
+                //ï¿½ï¿½ï¿½Õ´ï¿½Í³ï¿½ï¿½Ê½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
                 return;
             }
-            /*½«HttpÏòServletÇëÇó¹ı³ÌÖĞÌá½»µÄÊı¾İ½âÎöÎªList
-             *Ã¿Ò»¸öFileItem¶ÔÓ¦Ò»¸öForm±íµ¥µÄÊäÈëÏî,¿É¶àÑ¡£¡£¡
+            /*ï¿½ï¿½Httpï¿½ï¿½Servletï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½İ½ï¿½ï¿½ï¿½ÎªList
+             *Ã¿Ò»ï¿½ï¿½FileItemï¿½ï¿½Ó¦Ò»ï¿½ï¿½Formï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½É¶ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½
              */
             List<FileItem> list = upload.parseRequest(request);
             for(FileItem item : list){
-                //Èç¹ûfileitemÖĞ·â×°µÄÊÇÆÕÍ¨ÊäÈëÏîµÄÊı¾İ
+                //ï¿½ï¿½ï¿½fileitemï¿½Ğ·ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 if(item.isFormField()){
                     String name = item.getFieldName();
-                    //½â¾öÆÕÍ¨ÊäÈëÏîµÄÊı¾İµÄÖĞÎÄÂÒÂëÎÊÌâ
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     dynamicsText = item.getString("UTF-8");
                     System.out.println(name + "=" + dynamicsText);
                 }
                 else{
-                    //µÃµ½ÉÏ´«µÄÎÄ¼şÃû³Æ£¬
+                    //ï¿½Ãµï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Æ£ï¿½
                     dynamicsFile = item.getName();
                     System.out.println(dynamicsFile);
                     if(dynamicsFile==null || dynamicsFile.trim().equals("")){
                         continue;
                     }
-                    //×¢Òâ£º²»Í¬µÄä¯ÀÀÆ÷Ìá½»µÄÎÄ¼şÃûÊÇ²»Ò»ÑùµÄ£¬ÓĞĞ©ä¯ÀÀÆ÷Ìá½»ÉÏÀ´µÄÎÄ¼şÃûÊÇ´øÓĞÂ·¾¶µÄ£¬Èç£º  c:\a\b\1.txt£¬¶øÓĞĞ©Ö»ÊÇµ¥´¿µÄÎÄ¼şÃû£¬Èç£º1.txt
-                    //´¦Àí»ñÈ¡µ½µÄÉÏ´«ÎÄ¼şµÄÎÄ¼şÃûµÄÂ·¾¶²¿·Ö£¬Ö»±£ÁôÎÄ¼şÃû²¿·Ö
+                    //×¢ï¿½â£ºï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ç²ï¿½Ò»ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ğ©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ç£º  c:\a\b\1.txtï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ©Ö»ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç£º1.txt
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     dynamicsFile = dynamicsFile.substring(dynamicsFile.lastIndexOf("\\")+1);
-                    //ÎÄ¼şÒÑ¾­±»Ìá½»µ½ServletÖĞ£¬»ñÈ¡ÉÏ´«ÎÄ¼şµÄÊäÈëÁ÷
+                    //ï¿½Ä¼ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½Servletï¿½Ğ£ï¿½ï¿½ï¿½È¡ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     InputStream in = item.getInputStream();
 
-                    //·şÎñÆ÷¾ø¶ÔÂ·¾¶
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½
                     String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
                     File file = new File(savePath);
-                    //ÅĞ¶ÏÉÏ´«ÎÄ¼şµÄ±£´æÄ¿Â¼ÊÇ·ñ´æÔÚ
+                    //ï¿½Ğ¶ï¿½ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½Ä±ï¿½ï¿½ï¿½Ä¿Â¼ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
                     if (!file.exists() && !file.isDirectory()) {
-                        System.out.println(savePath + "Ä¿Â¼²»´æÔÚ£¬ĞèÒª´´½¨");
-                        //´´½¨Ä¿Â¼
+                        System.out.println(savePath + "Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½");
+                        //ï¿½ï¿½ï¿½ï¿½Ä¿Â¼
                         file.mkdir();
                     }
 
-                    //´´½¨Ò»¸öÎÄ¼şÊä³öÁ÷
+                    //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     FileOutputStream out = new FileOutputStream(savePath+"/"+dynamicsFile);
-                    //´´½¨Ò»¸ö»º³åÇø
+                    //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     byte buffer[] = new byte[1024];
-                    //ÅĞ¶ÏÊäÈëÁ÷ÖĞµÄÊı¾İÊÇ·ñÒÑ¾­¶ÁÍêµÄ±êÊ¶
+                    //ï¿½Ğ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½Ê¶
                     int len = 0;
-                    //Ñ­»·½«ÊäÈëÁ÷¶ÁÈëµ½»º³åÇøµ±ÖĞ£¬(len=in.read(buffer))>0¾Í±íÊ¾inÀïÃæ»¹ÓĞÊı¾İ
+                    //Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ëµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½(len=in.read(buffer))>0ï¿½Í±ï¿½Ê¾inï¿½ï¿½ï¿½æ»¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     while((len=in.read(buffer))>0){
-                        //Ê¹ÓÃFileOutputStreamÊä³öÁ÷½«»º³åÇøµÄÊı¾İĞ´Èëµ½Ö¸¶¨µÄÄ¿Â¼(savePath + "\\" + filename)µ±ÖĞ
+                        //Ê¹ï¿½ï¿½FileOutputStreamï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ´ï¿½ëµ½Ö¸ï¿½ï¿½ï¿½ï¿½Ä¿Â¼(savePath + "\\" + filename)ï¿½ï¿½ï¿½ï¿½
                         out.write(buffer, 0, len);
                     }
-                    //¹Ø±ÕÊäÈëÁ÷
+                    //ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     in.close();
-                    //¹Ø±ÕÊä³öÁ÷
+                    //ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     out.close();
-                    //É¾³ı´¦ÀíÎÄ¼şÉÏ´«Ê±Éú³ÉµÄÁÙÊ±ÎÄ¼ş
+                    //É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ï´ï¿½Ê±ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½
                     item.delete();
-                    System.out.println("ÉÏ´«¶¯Ì¬³É¹¦");
-                    //½«¶¯Ì¬Ïà¹ØĞÅÏ¢²åÈëÊı¾İ¿âÖĞ
+                    System.out.println("ï¿½Ï´ï¿½ï¿½ï¿½Ì¬ï¿½É¹ï¿½");
+                    //ï¿½ï¿½ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½
                     Timestamp now = new Timestamp(System.currentTimeMillis());
-                    dynamicsDao.insertDynamics(userId, dynamicsText,userId+"/"+dynamicsFile,now);//Êı¾İ¿â±íÖĞ²åÈë¶¯Ì¬ĞÅÏ¢
-                    userDao.updateDynamicsNum(userId);//ÓÃ»§¸üĞÂ¶¯Ì¬ÊıÁ¿£¨+1£©
+                    dynamicsDao.insertDynamics(userId, dynamicsText, userId + "/" + dynamicsFile, now);//ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½Ğ²ï¿½ï¿½ë¶¯Ì¬ï¿½ï¿½Ï¢
+                    userDao.updateDynamicsNum(userId);//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Â¶ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½+1ï¿½ï¿½
                 }
             }
         }catch (Exception e) {
-            System.out.println("ÉÏ´«¶¯Ì¬Ê§°Ü");
+            System.out.println("ï¿½Ï´ï¿½ï¿½ï¿½Ì¬Ê§ï¿½ï¿½");
             e.printStackTrace();
         }
     }
@@ -251,13 +274,13 @@ public class youandmeServiceImpl implements youandmeService {
             ServletFileUpload servletFileUpload = new ServletFileUpload(diskFileItemFactory);
             servletFileUpload.setHeaderEncoding("UTF-8");
             if(!ServletFileUpload.isMultipartContent(request)){
-                System.out.println("²»ÊÇ±íµ¥Êı¾İ£¡");
+                System.out.println("ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½İ£ï¿½");
                 return false;
             }
             List<FileItem> list = servletFileUpload.parseRequest(request);
             for(FileItem item:list){
                 if(item.isFormField()){
-                    //ÆÕÍ¨ÊäÈëÎÄ±¾Êı¾İ
+                    //ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½
                 }else {
                     headimgName = item.getName();
                     headimgName = "isHeadImg"+headimgName.substring(headimgName.lastIndexOf("\\") + 1);
@@ -265,8 +288,8 @@ public class youandmeServiceImpl implements youandmeService {
                     String savePath = "C:\\wamp\\www\\J2ee fileUpload\\Social dynamics\\"+userId;
                     File file = new File(savePath);
                     if(!file.exists()&&!file.isDirectory()){
-                        //ĞÂ½¨ÎÄ¼ş¼Ğ
-                        System.out.println("ĞÂ½¨Í·ÏñÎÄ¼ş¼Ğ");
+                        //ï¿½Â½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+                        System.out.println("ï¿½Â½ï¿½Í·ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½");
                         file.mkdir();
                     }
                     FileOutputStream fileOutputStream = new FileOutputStream(savePath+"/"+headimgName);
@@ -285,12 +308,12 @@ public class youandmeServiceImpl implements youandmeService {
             e.printStackTrace();
             return false;
         }
-        userDao.updateUserHeadImg(userId,userId+"/"+headimgName);//¸üĞÂÊı¾İ¿âÖĞµÄÍ·ÏñĞÅÏ¢
+        userDao.updateUserHeadImg(userId,userId+"/"+headimgName);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½Ğµï¿½Í·ï¿½ï¿½ï¿½ï¿½Ï¢
         return true;
     }
 
     public boolean changePersonalInfo(int userId, String username, String email, String address, String description) {
-        int updateResult = userDao.updateUser(userId,username,email,address,description);
+        int updateResult = userDao.updateUser(userId, username, email, address, description);
         if(updateResult==1){
             return true;
         }
@@ -308,13 +331,13 @@ public class youandmeServiceImpl implements youandmeService {
         int flag = 0;
         int selectLikeResult = dynamicsDao.selectLike(dynamicsId, userId);
         if(selectLikeResult == 0){
-            //ÓÃ»§»¹Ã»µãÔŞ
+            //ï¿½Ã»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
             flag = 1;
             dynamicsDao.updateLikeNum(dynamicsId);
             dynamicsDao.insertLike(dynamicsId, userId);
 
         }else if(selectLikeResult==1) {
-            //ÓÃ»§ÒÑ¾­µãÔŞ
+            //ï¿½Ã»ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½
             dynamicsDao.updateLikeNumSub(dynamicsId);
             dynamicsDao.deleteLike(dynamicsId, userId);
         }
@@ -345,7 +368,7 @@ public class youandmeServiceImpl implements youandmeService {
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         SocialDynamics socialDynamics = dynamicsDao.selectDetailDynamicsById(dynamicsId);
-        int insertCommentResult = commentDao.insertComment(dynamicsId, sendId, socialDynamics.getUser().getUsername(), commentText,now);
+        int insertCommentResult = commentDao.insertComment(dynamicsId, sendId, socialDynamics.getUser().getUsername(), commentText, now);
         if(insertCommentResult == 1){
             CommentInfo commentInfo = commentDao.selectNewestCommentOfUser(sendId);
             return commentInfo;
@@ -382,18 +405,162 @@ public class youandmeServiceImpl implements youandmeService {
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
-        ReplyInfo replyInfo = commentDao.selectReplyInfoById(replyId);//ÓÃ»§Òª½øĞĞ»Ø¸´µÄ»Ø¸´Ìõ
+        ReplyInfo replyInfo = commentDao.selectReplyInfoById(replyId);//ï¿½Ã»ï¿½Òªï¿½ï¿½ï¿½Ğ»Ø¸ï¿½ï¿½Ä»Ø¸ï¿½ï¿½ï¿½
         String receiveUsername = replyInfo.getSendUser().getUsername();
         int commentId = replyInfo.getCommentId();
 
         commentDao.insertReply(commentId,sendId,receiveUsername,replyText,now);
 
-        ReplyInfo replyInfo2 = commentDao.selectReplyInfoBysendId(sendId);//ÓÃ»§µÄ×îĞÂ»Ø¸´
+        ReplyInfo replyInfo2 = commentDao.selectReplyInfoBysendId(sendId);//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â»Ø¸ï¿½
         return replyInfo2;
     }
 
     public ReplyInfo showReplyInfo(int replyId) {
         ReplyInfo replyInfo = commentDao.selectReplyInfoById(replyId);
         return replyInfo;
+    }
+
+    public List<User> luceneSearchUser(String inputString) {
+
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+        IndexWriter indexWriter = null;
+        try{
+            // ï¿½ï¿½ï¿½ï¿½IndexWriter
+            Directory directory = FSDirectory.open(
+                    FileSystems.getDefault().getPath("C:\\wamp\\www\\LuceneIndex"));
+            Analyzer analyzer = new StandardAnalyzer();
+            IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+            indexWriter = new IndexWriter(directory, indexWriterConfig);
+            indexWriter.deleteAll();//ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½index
+
+            List<User> userList = userDao.selectAllUserForLucene();
+            for(User user:userList){
+
+                Document document = new Document();
+                document.add(new Field("userId",String.valueOf(user.getUserId()), TextField.TYPE_STORED));
+                document.add(new Field("username",user.getUsername(), TextField.TYPE_STORED));
+                document.add(new Field("headImg",user.getHeadImg(),TextField.TYPE_STORED));
+                if(user.getAddress()==null){
+                    document.add(new Field("address","",TextField.TYPE_STORED));
+                }else{
+                    document.add(new Field("address",user.getAddress(),TextField.TYPE_STORED));
+                }
+                indexWriter.addDocument(document);//ï¿½ï¿½documentï¿½Ä¼ï¿½Ğ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        finally {
+
+            try{
+                indexWriter.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        DirectoryReader directoryReader = null;
+        List<User> resultUserList = new ArrayList<User>();
+        try {
+            // ï¿½ï¿½ï¿½ï¿½IndexSearch
+            Directory directory = FSDirectory.open(
+                    FileSystems.getDefault().getPath("C:\\wamp\\www\\LuceneIndex"));
+            directoryReader = DirectoryReader.open(directory);
+            IndexSearcher indexSearcher = new IndexSearcher(directoryReader);
+
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Query
+            Analyzer analyzer = new StandardAnalyzer();
+            // ï¿½ï¿½ï¿½ï¿½parserï¿½ï¿½È·ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ£ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            QueryParser queryParser = new QueryParser("username", analyzer);
+            Query query = queryParser.parse(inputString);
+
+            // ï¿½ï¿½ï¿½ï¿½searcherï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½TopDocs
+            TopDocs topDocs = indexSearcher.search(query, 1000);
+            System.out.println("ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½Userï¿½Ü¹ï¿½ï¿½Ğ£ï¿½" +topDocs.totalHits);
+
+            // ï¿½ï¿½ï¿½ï¿½TopDocsï¿½ï¿½È¡ScoreDocï¿½ï¿½ï¿½ï¿½
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
+
+                // ï¿½ï¿½ï¿½ï¿½searcherï¿½ï¿½ScoreDocï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Documentï¿½ï¿½ï¿½ï¿½
+                Document document = indexSearcher.doc(scoreDoc.doc);
+
+                // ï¿½ï¿½ï¿½ï¿½Documentï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½Òªï¿½ï¿½Öµ
+                System.out.println("ï¿½Ã»ï¿½idï¿½ï¿½"+document.get("userId")+"ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½"+document.get("username")+"ï¿½ï¿½Í·ï¿½ï¿½"+document.get("headImg"));
+
+                String value = toHighlighter(query,document,"username",analyzer);
+                System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½"+value);//ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¹Ø¼ï¿½ï¿½Ê¸ï¿½ï¿½ï¿½
+
+                User user = new User(Integer.valueOf(document.get("userId")),value,document.get("headImg"),document.get("address"));
+                resultUserList.add(user);
+            }
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                if (directoryReader != null) {
+                    directoryReader.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return resultUserList;
+    }
+
+    //Luceneï¿½ï¿½ï¿½ï¿½
+    public String toHighlighter(Query query,Document doc,String field,Analyzer analyzer){
+        try {
+            SimpleHTMLFormatter simpleHtmlFormatter = new SimpleHTMLFormatter("<font>", "</font>");
+            Highlighter highlighter = new Highlighter(simpleHtmlFormatter,new QueryScorer(query));
+            TokenStream tokenStream1 = analyzer.tokenStream("text",new StringReader(doc.get(field)));
+            String highlighterStr = highlighter.getBestFragment(tokenStream1, doc.get(field));
+            return highlighterStr == null ? doc.get(field):highlighterStr;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (InvalidTokenOffsetsException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void addMessage(int fromId, String fromName, int toId, String messageText, Timestamp messageDate) {
+        messageDao.insertMessage(fromId,fromName,toId,messageText,messageDate);
+    }
+
+    public List<Message> showMessage(int fromId, int toId) {
+        List list = messageDao.selectMessageOfTwo(fromId,toId);
+        return list;
+    }
+
+    public void uploadInfo(String fileName, String uploadUsername, Timestamp uploadTime) {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        pluploadDao.insertFileInfo(fileName,uploadUsername,now);
+    }
+
+    public List<PluploadFile> showUploadOfUser(String uploadUsername) {
+        List<PluploadFile> list = pluploadDao.selectFileByUsername(uploadUsername);
+        return list;
+    }
+
+    public void deletePluploadFile(HttpServletRequest request,int userId,int id) {
+
+        PluploadFile pluploadFile = pluploadDao.selectFileById(id);
+        File file = new File(request.getSession().getServletContext().getRealPath("/")+"pluploadDir"+"/"+userId+"/"+pluploadFile.getFileName());
+        if(file.exists()){
+            file.delete();//åˆ é™¤ç£ç›˜æ–‡ä»¶
+            pluploadDao.deleteInfoOfFile(id);//æ•°æ®åº“ä¸­åˆ é™¤æ–‡ä»¶ç›¸å…³ä¿¡æ¯
+        }
+    }
+
+    public PluploadFile showFileOfId(int id) {
+        PluploadFile pluploadFile = pluploadDao.selectFileById(id);
+        return pluploadFile;
     }
 }

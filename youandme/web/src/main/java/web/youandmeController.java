@@ -1,17 +1,22 @@
 package web;
 
 import dto.youandmeResult;
-import entity.CommentInfo;
-import entity.ReplyInfo;
-import entity.SocialDynamics;
-import entity.User;
+import entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import service.youandmeService;
+import web.download.MyDownload;
+import web.plupload.Plupload;
+import web.plupload.PluploadService;
+
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +31,12 @@ public class youandmeController {
     @Autowired
     private youandmeService youandmeService;
 
+    @Autowired
+    private PluploadService pluploadService;
+
+    @Autowired
+    private MyDownload myDownload;
+
     /**
      * 登录页面，包含注册
      * @param model
@@ -36,6 +47,28 @@ public class youandmeController {
         return "login";
     }
 
+    @RequestMapping(value = "/plupload",method = RequestMethod.GET)
+    public String plupload(Model model){
+        return "plupload";
+    }
+
+    /**Plupload文件上传处理方法*/
+    @RequestMapping(value="/pluploadUpload")
+    public void upload(Plupload plupload,HttpServletRequest request,HttpServletResponse response) {
+
+        String FileDir = "pluploadDir";//文件保存的文件夹
+        plupload.setRequest(request);//手动传入Plupload对象HttpServletRequest属性
+
+        int userId = ((User)request.getSession().getAttribute("user")).getUserId();
+
+        //文件存储绝对路径,会是一个文件夹，项目相应Servlet容器下的"pluploadDir"文件夹，还会以用户唯一id作划分
+        File dir = new File(request.getSession().getServletContext().getRealPath("/") + FileDir+"/"+userId);
+        if(!dir.exists()){
+            dir.mkdirs();//可创建多级目录，而mkdir()只能创建一级目录
+        }
+        //开始上传文件
+        pluploadService.upload(plupload, dir);
+    }
 
 
     /**
@@ -68,6 +101,7 @@ public class youandmeController {
             return "index";
         }
     }
+
 
     /**
      * 用户详细页面
@@ -459,5 +493,88 @@ public class youandmeController {
         ReplyInfo replyInfo = youandmeService.sendReplyOfReply(replyId, sendId, replyText);
 
         return new youandmeResult<ReplyInfo>(replyInfo,true);
+    }
+
+    /**
+     * 用户在input.searchUserToContact_search中输入用户名，Lucene查找并高亮
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/luceneSearchUser",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult luceneSearchUser(HttpServletRequest request){
+
+        String inputString = request.getParameter("inputString");
+        List<User> userList = youandmeService.luceneSearchUser(inputString);
+        return new youandmeResult<List<User>>(userList,true);
+    }
+
+    /**
+     * 用户查找想要聊天的朋友，点击div.searchUserToContact_body中的div.userToContact后触发的查找相应用户详细信息
+     * 加入到div.contactDivTrue_left中
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/prepareUserToContact",
+            produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult prepareUserToContact(HttpServletRequest request){
+
+        int userId = Integer.valueOf(request.getParameter("userId"));
+        User user = youandmeService.queryUserById(userId);
+        return new youandmeResult<User>(user,true);
+    }
+
+    /**
+     * 显示两个用户过去的聊天记录
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/showContentInThePast",
+            produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showContentInThePast(HttpServletRequest request){
+
+        HttpSession session = request.getSession();
+        User user = (User)session.getAttribute("user");
+        int toId = Integer.valueOf(request.getParameter("toId"));
+
+        List<Message> list = youandmeService.showMessage(user.getUserId(), toId);
+        return new youandmeResult<List<Message>>(list,true);
+    }
+
+    @RequestMapping(value = "/showUploadFileOfUser",
+                    produces = {"application/JSON;charset=UTF-8"})
+    @ResponseBody
+    public youandmeResult showUploadFileOfUser(HttpServletRequest request) {
+
+        User user = (User)request.getSession().getAttribute("user");
+        String username = user.getUsername();
+        List<PluploadFile> list = youandmeService.showUploadOfUser(username);
+        return new youandmeResult<List<PluploadFile>>(list,true);
+    }
+
+
+    @RequestMapping(value = "/deleteFile")
+    public void deleteFile(HttpServletRequest request){
+
+        int id = Integer.valueOf(request.getParameter("id"));
+        int userId = ((User)request.getSession().getAttribute("user")).getUserId();
+        youandmeService.deletePluploadFile(request,userId,id);
+    }
+
+    @RequestMapping(value = "/downloadFile/{id}")
+    public void downloadFile(@PathVariable("id") int id,HttpServletRequest request,HttpServletResponse response){
+        try {
+
+            int userId = ((User)(request.getSession().getAttribute("user"))).getUserId();
+            myDownload.downloadSolve(id,request,response,userId);
+
+        }catch (ServletException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 }
